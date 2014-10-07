@@ -1,0 +1,43 @@
+$('input[id = "multics"]').live('click', function(){
+					name =  $(this).attr("data-named") + "[]";
+					testid = $(this).attr("name");
+					console.log(methodid = $(this).parent().parent().attr("class"));
+					method_tid = $(this).val();
+					var method_id = $(this).attr("title");
+					//alert(method_tid)
+					
+					if($(this).is(':checked')){
+
+							$("<tr class = '"+method_tid+method_id+"'><td><label>No. of Stages/Components</label><input type ='text' name='"+name+"' id = '"+method_tid+"' class = 'multiple' data-method = '"+method_id+"' /></td></tr>").insertAfter("input[id = 'multics'][value ="+method_tid+"][title = "+method_id+"]");
+							$("<input type = 'hidden' name = 'charge[]' value = '' />").insertAfter("[id ="+tid+"]");
+							$("<input type = 'hidden' name = 'testids[]' value = '"+testid+"' />").insertAfter("[id ="+tid+"]");
+							$("<input type = 'hidden' name = 'methodids[]' value = '"+methodid+"' />").insertAfter("[id ="+tid+"]");
+							}
+					else{
+						console.log($("tr[class = "+method_tid+method_id+"]").remove());
+					}
+
+			$(".multiple[data-method = '"+method_id+"'][name='"+name+"']").live('blur',function(){
+				var methdid = $(this).attr("data-method");
+				console.log($(this).attr("name"));
+				var multino = $(this).val();
+				console.log(methdid)
+				console.log(multino)
+				$("<tr class = 'analysisbundle'><td><label>Single System</label><input type ='radio' name='analysistype[]' value = '1' data-meth = '"+methdid+"'/></td></tr><tr class = 'analysisbundle'><td><label>Different System</label><input type ='radio' name='analysistype[]' value = '2' data-meth = '"+methdid+"' id = 'othermethod' class = 'diffsys' href='#diffsys' /></td></tr>").insertAfter("input[name = '"+name+"'][data-method = '"+methdid+"']");
+			})
+
+			$("input[name='analysistype[]']").live('click', function(){
+				dtm = $(this).attr("data-meth");
+				if($(this).is(':checked')){
+					console.log(dtm)
+					console.log($("<input type = 'hidden' name = 'analysistypemid[]' value = '"+dtm+"' />").insertAfter("tr[class = 'analysisbundle']"))
+				}
+					})
+
+			$(".diffsys").live('click', function(){
+				  $("#diffsys").fancybox({
+    				'zoomSpeedIn': 300,
+    				'zoomSpeedOut': 300,
+   					'overlayShow': false
+  				}); 
+			})
