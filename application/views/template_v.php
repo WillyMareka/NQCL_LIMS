@@ -11,8 +11,9 @@
 <script src="<?php echo base_url().'Scripts/jquery-1.10.2.js'?>"></script>
 <script src="<?php echo base_url().'Scripts/migrate.js'?>"></script>
 <script src="<?php echo base_url().'Scripts/jquery-ui.js'?>" type="text/javascript"></script> 
-
-
+<!--
+ <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />-->
 
 <script src="<?php echo base_url().'Scripts/jquery.validate.js'?>" type="text/javascript"></script>
 <script src="<?php echo base_url().'Scripts/fancybox/lib/jquery.mousewheel-3.0.6.pack.js'?>" type="text/javascript"></script>

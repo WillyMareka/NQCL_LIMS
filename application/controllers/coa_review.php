@@ -12,7 +12,7 @@ class Coa_Review extends MY_Controller {
     }
     
    public function draft_coa_review() {
-        error_reporting(1);
+        //error_reporting(1);
       //  $data['labref'] = $this->getLabreferences();
         $data['worksheets'] = $this->worksheets();
         $data['reviewer_id'] = $this->session->userdata('user_id');
@@ -24,7 +24,8 @@ class Coa_Review extends MY_Controller {
         $reviewer_id = $this->session->userdata('user_id');
    
         $this->db->where('director_id', $reviewer_id);
-     
+        $this->db->where('approval_status', 0);
+        $this->db->group_by('folder');
         $query = $this->db->get('directors');
         foreach ($query->result() as $folders) {
             $folder[] = $folders;

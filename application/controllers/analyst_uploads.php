@@ -22,7 +22,13 @@ class Analyst_Uploads extends MY_Controller {
         $this->base_params($data);
     }
 
-    function do_upload() {
+    function do_upload($labref1) {
+        $filename ='analyst_uploads/'.$labref1.'.xlsx';
+        if(file_exists($filename)){
+            unlink($filename); 
+            echo 'Deleted';
+        }
+      //  exit();
         $this->makeDir();
         $year = date('Y');
         $month = date('M');

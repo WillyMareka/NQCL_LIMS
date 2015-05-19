@@ -7,13 +7,12 @@
 				<?php for($i=0; $i < $prints_no; $i++) {?>
 				<?php if($i%2 == 0){ echo "</tr><tr>"; } ?>
 					<td class = "fixed <?php if($prints_no == 1){ echo 'left_text'; } else { echo 'centred_text bordered'; } ?>" >
-						<small class = "centred_text" ><img src="<?php echo base_url()."Images/nqcl_logo_bw.jpg" ?>" height = "8" width = "8" >&nbsp;<span class = "smaller_text" >National Quality Control Laboratory <br> P.O. Box 29726 - 00202 KNH, Nairobi.</span><small/>
-						<br>	
+						<small class = "centred_text" ><img src="<?php echo base_url()."Images/nqcl_logo_bw.jpg" ?>" height = "8" width = "8" >&nbsp;<span class = "smaller_text" >National Quality Control Laboratory.</span><small/>
 						<?php 
 						foreach($refsub[$i][0] as $key => $value){?>							
 							<?php if($key != 'id' && $key != 'date_received') { ?> 
 								<?php if($key != 'potency_unit'){ echo "<br>"; }  ?>
-								<span class = "small-text" ><small><?php if($key != 'potency_unit') { echo ucfirst(str_replace("_", " ", $key))."&nbsp;:&nbsp;".ucfirst(str_replace("_", " ", $value)); } else { echo "&nbsp;".ucfirst(str_replace("_", " ", $value));  } ?></small></span>
+								<span class = "small-text" ><small><?php if($key != 'potency_unit') { echo ucwords(str_replace("_", " ", $key))."&nbsp;:&nbsp;".ucwords(str_replace("_", " ", $value)); } else { echo "&nbsp;".ucfirst(str_replace("_", " ", $value));  } ?></small></span>
 							<?php } ?>
 						<?php } ?>
 					</td>
@@ -58,5 +57,9 @@ html { margin-right: 0.13in;
 	   margin-top:0.0in;
 	   margin-bottom:0.02in;
 	}
+
+.shorterbr{
+	line-height:30%;
+}	
 
 </style>

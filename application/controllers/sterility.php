@@ -7,6 +7,7 @@ class Sterility extends MY_Controller {
     }
 
     public function worksheet() {
+      
         $data['labref'] = $labref= $this->uri->segment(3);
         $data['test_id'] =$test_id= $this->uri->segment(4);
         $data['worksheet_name']=   $this->uri->segment(1);
@@ -162,6 +163,7 @@ class Sterility extends MY_Controller {
           $this->updateSampleSummary();
           $this->post_posting();
           $this->save_test();
+		  $this->RegisterSterility($labref,$analyst_id,$new_status);
           $test_id=  $this->uri->segment(4);
           $this->updateUploadStatus($labref, $test_id);
          // $this->updateTabsCapsCOADetails($labref);
@@ -170,7 +172,121 @@ class Sterility extends MY_Controller {
 
 
 
-        redirect('analyst_controller');
+       // redirect('analyst_controller');
+    }
+	
+	function getSterility($labref,$analyst_id, $r){
+	return $this->db
+	            ->where('labref',$labref)
+				->where('analyst_id',$analyst_id)
+				->where('repeat_status',$r)
+				->get('sterility')
+				->result();
+	}
+	
+	 function RegisterSterility($labref,$analyst_id, $r) {
+        if (file_exists('samplepdfs/'.$labref.'_sterility.pdf')) {
+            unlink('samplepdfs/'.$labref.'_sterility.pdf');
+        } else {
+           // echo 'Not found';
+        }
+        $sterility = $this->getSterility($labref,$analyst_id, $r);
+      
+
+        $full_name = 'samplepdfs/sterility.pdf';     
+        $pdf = new FPDI('P', 'mm', 'A4');
+        $pdf->AliasNbPages();
+
+        $pagecount = $pdf->setSourceFile($full_name);
+
+        $i = 1;
+        do {
+            // add a page
+            $pdf->AddPage();
+            // import page
+            $tplidx = $pdf->ImportPage($i);
+
+            $pdf->useTemplate($tplidx, 10, 10, 200);
+
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFontSize(9);
+            
+            $pdf->SetFont('Arial');
+            //chromatographic conditions assay
+          $pdf->SetXY(50,53);
+          $pdf->Write(1, $sterility[0]->micro_number);
+		   $pdf->SetXY(90,53);
+          $pdf->Write(1, $sterility[0]->date_recieved);
+		   $pdf->SetXY(130,53);
+          $pdf->Write(1, $sterility[0]->date_test_set);
+		   $pdf->SetXY(170,53);
+          $pdf->Write(1, $sterility[0]->date_of_results);
+         // $pdf->SetXY(125, 52);
+/*           $pdf->Write(1, $c_conds_assay[0]->column_type.", ".$c_conds_assay[0]->column_dimensions);
+          $pdf->SetXY(70, 58);
+          $pdf->Write(1, $c_conds_assay[0]->column_temp);
+          $pdf->SetXY(70, 63);
+          $pdf->Write(1, $c_conds_assay[0]->detection);
+          $pdf->SetXY(128, 63);
+          $pdf->Write(1, $c_conds_assay[0]->injection);
+          $pdf->SetXY(25, 80);
+          $pdf->Write(1, $c_conds_assay[0]->mobile_phase);
+          $pdf->SetXY(178, 79);
+          $pdf->Write(1, $c_conds_assay[0]->flow_rate);
+          $pdf->SetXY(178, 85);
+          $pdf->Write(1, $c_conds_assay[0]->pump_pressure);
+          
+          
+            //chromatographic conditions dissolution
+          $pdf->SetXY(70, 109);
+          $pdf->Write(1, $c_conds_diss[0]->column_no);
+          $pdf->SetXY(125, 109);
+          $pdf->Write(1, $c_conds_diss[0]->column_type.", ".$c_conds_diss[0]->column_dimensions);
+          $pdf->SetXY(70, 115);
+          $pdf->Write(1, $c_conds_diss[0]->column_temp);
+          $pdf->SetXY(70, 120);
+          $pdf->Write(1, $c_conds_diss[0]->detection);
+          $pdf->SetXY(128, 120);
+          $pdf->Write(1, $c_conds_diss[0]->injection);
+          $pdf->SetXY(25, 137);
+          $pdf->Write(1, $c_conds_diss[0]->mobile_phase);
+          $pdf->SetXY(178, 137);
+          $pdf->Write(1, $c_conds_diss[0]->flow_rate);
+          $pdf->SetXY(178, 142);
+          $pdf->Write(1, $c_conds_diss[0]->pump_pressure);
+            
+            
+            
+            
+            
+            
+            $xa=1;
+            $ya=(int)172;
+                $pdf->SetFontSize(10);
+           for($s=0; $s<count($standards);$s++){
+
+            $pdf->SetXY(38, $ya+=7);
+            $pdf->Write(1, $standards[$s]->name);
+            
+            $pdf->SetXY(115, $ya);
+            $pdf->Write(1, $standards[$s]->rs_code);
+            
+            $pdf->SetXY(160, $ya);
+            $pdf->Write(1, round($standards[$s]->potency,4));
+            
+              
+            }
+       
+
+
+
+ */
+
+            $i++;
+        } while ($i <= $pagecount);
+        $pdf->Output('samplepdfs/'.$labref.'_sterility.pdf', 'F');
+      
+        echo 'Done';
     }
     
     

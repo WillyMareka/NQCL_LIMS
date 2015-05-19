@@ -170,7 +170,7 @@ $(function() {
 
                        //Open fancybox with tests methods.
                         var href = '<?php echo base_url()."quotation/stateComponents/".$quotation_no."/"; ?>' + "quotations" + "/" + "tests" + "/" + "q_request_details"
-                        parent.$.fancybox.open({
+                        /*parent.$.fancybox.open({
                             href:href,
                             type: 'iframe',
                             autoSize:false,
@@ -181,7 +181,7 @@ $(function() {
                                 //getData();
                             }
                          })
-
+                        */
                     }
                     else if(response.status === "error"){
                             alert(response.message);

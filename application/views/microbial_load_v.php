@@ -488,28 +488,28 @@
                     <TR>
                         <TD COLSPAN=3 HEIGHT=9 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <H1 CLASS="western" STYLE="margin-top: 0in">
-                                <input type="text" autocomplete="off" name="micro_no" id="micro_no" value="<?php echo @$micro_number; ?>">
+                                <input type="text" autocomplete="off" class="com" name="micro_no" id="micro_no" value="<?php echo @$micro_number; ?>">
                                 <BR>
                             </H1>
                         </TD>
                         <TD COLSPAN=5 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=CENTER STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="margin-top: 0in">
-                                    <input type="text" autocomplete="off" name="date_received" id="date_received" value="<?php echo $date[0]->created_at; ?>">
+                                    <input type="text" autocomplete="off" class="com" name="date_received" id="date_received" value="<?php echo $date[0]->created_at; ?>">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=CENTER STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="margin-top: 0in">
-                                    <input type="text" autocomplete="off" name="date_test_set" id="date_set">
+                                    <input type="text" autocomplete="off" class="com" name="date_test_set" id="date_set">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=3 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=CENTER STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="margin-top: 0in">
-                                    <input type="text" autocomplete="off" name="date_of_result_determined" id="date_of_result">
+                                    <input type="text" autocomplete="off"  class="com" name="date_of_result_determined" id="date_of_result">
                                 </span><BR>
                             </P>
                         </TD>
@@ -561,13 +561,13 @@
                     <TR VALIGN=TOP>
                         <TD WIDTH=148 HEIGHT=21 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
-                                <input type="text" autocomplete="off" autocomplete="off" name="smp" id="textfield">
+                                <input type="text" autocomplete="off"  class="com"autocomplete="off" name="smp" id="textfield">
                                 <BR>
                             </P>
                         </TD>
                         <TD WIDTH=72 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
-                                <select name="unit" id="select2">
+                                <select name="unit" id="select2" class="com">
                                     <option value=""></option>
                                     <option value="g">g</option>
                                     <option value="ml">ml</option>
@@ -580,39 +580,39 @@
                         <TD COLSPAN=3 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="diluent" id="textfield3">
+                                    <input type="text" autocomplete="off" class="com" autocomplete="off" name="diluent" id="textfield3">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=2 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="v1" id="textfield4">
+                                    <input type="text"  class="com" autocomplete="off" autocomplete="off" name="v1" id="textfield4">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=2 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="p1" id="textfield5">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="p1" id="textfield5">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=2 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="v2" id="textfield6">
+                                    <input type="text"  class="com" autocomplete="off" autocomplete="off" name="v2" id="textfield6">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=3 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="plating" id="textfield7">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="plating" id="textfield7">
                                 </span><BR>
                             </P>
                         </TD>
-                        <TD WIDTH=88 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in"><select name="replicate" id="replicate">
+                        <TD WIDTH=88 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in"><select name="replicate" id="replicate" class="com">
                                 <option value=""></option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -663,14 +663,14 @@
                         <TD COLSPAN=4 VALIGN=TOP STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" name="cfu-1[]" id="" class="cfu">
+                                    <input type="text" class="com" autocomplete="off" name="cfu-1[]" id="" class="cfu">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 VALIGN=TOP STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu11">
+                                    <input type="text"  class="com" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu11">
                                 </span><BR>
                             </P>
                         </TD>
@@ -684,14 +684,14 @@
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" name="cfu-1[]" class="cfu"/>
+                                    <input type="text" class="com" autocomplete="off" name="cfu-1[]" class="cfu"/>
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu11">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu11">
                                 </span><BR>
                             </P>
                         </TD>
@@ -705,14 +705,14 @@
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text"  name="cfu-1[]" id="average1">
+                                    <input type="text"  class="com" name="cfu-1[]" id="average1">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=JUSTIFY STYLE="font-weight: normal; widows: 0; orphans: 0">
                                 <span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu1[]" id="average_neg">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="cfu1[]" id="average_neg">
                                 </span><BR>
                             </P>
                         </TD>
@@ -752,13 +752,13 @@
                         </TD>
                         <TD COLSPAN=4 VALIGN=TOP STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" name="cfu-1[]" id="" class="cfu1">
+                                    <input type="text" class="com" autocomplete="off" name="cfu-1[]" id="" class="cfu1">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 VALIGN=TOP STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu12">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu12">
                                 </span><BR>
                             </P>
                         </TD>
@@ -771,13 +771,13 @@
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu-1[]" class="cfu1">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="cfu-1[]" class="cfu1">
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu12">
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="cfu1[]" class="cfu12">
                                 </span><BR>
                             </P>
                         </TD>
@@ -790,13 +790,13 @@
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=RIGHT STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" autocomplete="off" name="cfu-1[]" id="average2"/>
+                                    <input type="text" class="com" autocomplete="off" autocomplete="off" name="cfu-1[]" id="average2"/>
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" name="cfu1[]" id="average_neg_2">
+                                    <input type="text" class="com" autocomplete="off" name="cfu1[]" id="average_neg_2">
                                 </span><BR>
                             </P>
                         </TD>
@@ -810,13 +810,13 @@
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" ALIGN=RIGHT STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" name="cfu-1[]" id="average_cfu"/>
+                                    <input type="text" class="com" autocomplete="off" name="cfu-1[]" id="average_cfu"/>
                                 </span><BR>
                             </P>
                         </TD>
                         <TD COLSPAN=4 STYLE="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                             <P CLASS="western" STYLE="widows: 0; orphans: 0"><span class="western" style="font-weight: normal; widows: 0; orphans: 0">
-                                    <input type="text" autocomplete="off" name="cfu1[]" id="average_cfu_cont">
+                                    <input type="text" class="com" autocomplete="off" name="cfu1[]" id="average_cfu_cont">
                                 </span><BR>
                             </P>
                         </TD>

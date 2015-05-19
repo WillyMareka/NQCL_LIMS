@@ -6,8 +6,9 @@
 <link href="<?php echo base_url().'CSS/validationEngine.jquery.css'?>" type="text/css" rel="stylesheet"/>
 <link href="<?php echo base_url().'Scripts/tabletools/media/css/TableTools_JUI.css'?>" type="text/css" rel="stylesheet"/>
 <link href="<?php echo base_url().'Scripts/tabletools/media/css/TableTools.css'?>" type="text/css" rel="stylesheet"/>
-<link href="<?php echo base_url(); ?>Scripts/zebra-datepicker/public/css/metallic.css" rel="stylesheet" type="text/css" />
-
+<!--<link href="<?php echo base_url(); ?>Scripts/zebra-datepicker/public/css/metallic.css" rel="stylesheet" type="text/css" />
+ <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />-->
 <!-- link href="<?php //echo base_url().'Scripts/jquery-ui-1.10.3.custom.min.css'?>" type="text/css" rel="stylesheet"/--> 
 <script src="<?php echo base_url().'Scripts/jquery-1.10.1.min.js'?>" type="text/javascript"></script>
 <script src="<?php echo base_url().'Scripts/jquery-migrate-1.2.1.min.js'?>" type="text/javascript"></script>

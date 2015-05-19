@@ -122,11 +122,11 @@ font-weight: bolder;
                     <td>Comments:</td>
                     <td><textarea id="disco" name="disco" class="dismedium" required  cols="50" rows="5"></textarea></td>
                 </tr>
-                <tr class="tg-even">
+<!--                <tr class="tg-even">
                     <td>Fineness of Dispersion</td>
                     <td><textarea type="text" id="disfod" name="disfod"  required class="dismedium" cols="50" rows="3"></textarea></td>
 
-                </tr>            
+                </tr>            -->
 
             </table>
             <p><input type="button" value="Save Disintegration Data" id="Save"/></p>

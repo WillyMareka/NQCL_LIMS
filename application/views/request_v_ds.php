@@ -52,7 +52,7 @@
             font-weight: bolder;
             font-size: larger;
         }
-        .data{
+        .data,.date_change,#popup_date{
             display: none;
         }
 
@@ -65,14 +65,27 @@
         <div class="success">Success: Worksheet was successfully assigned for review</div>
         <div class="error">Error: Worksheet could not be assigned for review now, Please try again later!</div>
         <div class="content4">
+            
+            <div id="filter">
+                  <form id="printing_form" method="post">
+                <table>
+                  
+                    <tr><td>Start Date: <input type="text" id="start" name="start"/></td></tr>
+                    <tr><td>End Date: <input type="text" id="end" name="end"/></td></tr>
+                    <tr><td><input type="button"  value="Print" id="printer"/></td></tr>
+                    
+                </table>
+                  </form>
+            </div>
             <table id = "refsubs">
                 <thead>
                     <tr>
-                        <th>Sample</th>                        
-                        <th>Given To.</th>                        
+                        <th>Sample</th> 
+						<th>Quantity Issued</th> 						
+                        <th>Issued To.</th>                        
                         <th>Date</th>
                         <td>Analysis</td>
-                         <td>Date Returned</td>
+<!--                         <td>Date Returned</td>-->
                         
 
                         
@@ -84,23 +97,30 @@
                     <?php foreach ($info as $sheets) : 
                         
                         
-                        $timestamp_start = strtotime($sheets->date_time);
+                        $timestamp_start = strtotime($sheets->date_time_tracker);
 
-                        $now = date('d-m-Y H:i:s');
+                        $now = date('d-m-Y');
 
                         $days= timespan($timestamp_start, $now); 
                         ?>	
                             
                         <tr>
-                            <td style="background: lightgreen;"><?php echo $sheets->labref ?> - <em><strong>Issued: <?php echo $days;?> Ago</strong></em> </td>
+<!--                            - <em><strong>Issued: <?php echo $days;?> Ago</strong></em> -->
+                            <td style="background: lightgreen;"><?php echo $sheets->labref ?> </td>
+							<td><?php echo $sheets->quantity_issued . " " . $sheets->sample_packaging ?></td>
                             <td><?php echo $sheets->analyst_name ?></td>                        
-                            <td><?php echo $sheets->date_time ?></td>
+                            <td  class=""><a href="#date_change" class="Edit" id="<?php echo $sheets->id;?>"> <?php echo $sheets->date_time_tracker ?> (Edit)</a></td>
                             <?php if($sheets->a_stat==='0'){?>
-                            <td style="background: yellow;">In Progress : <a href="<?php echo base_url().'request_management/complete/'.$sheets->labref?>">Complete</a></td> 
+                            <td style="background: yellow;">Analysis in Progress : <a href="<?php echo base_url().'request_management/complete/'.$sheets->labref?>">Complete Analysis</a></td> 
                             <?php }else{ ?>
-                            <td style="background: lawngreen;">Completed : <a href="#data" id="<?php echo $sheets->labref;?>" class="inline1">Assign</a></td> 
+                            <td style="background: lawngreen;">
+                            <?php if($sheets->stat === '0') { ?>
+                                <a id="<?php echo $sheets->labref;?>" href="#data" class="assign_reviewer">Assign Reviewer</a></td> 
+                            <?php } else {?> 
+                                <a href = "#review_in_progress" title = "Click to see reviewer" data-labref = "<?php echo $sheets->labref;?>" id="rvip<?php echo $sheets->labref;?>" class="rvip">Review in Progress</a>
+                            <?php } ?>
                             <?php }?>
-                             <td > <?php echo $sheets->date_time_returned;?></td> 
+<!--                             <td > <?php echo $sheets->date_time_returned;?></td> -->
 
                            
                            
@@ -138,6 +158,33 @@
                 </table>
             </form>
         </div>
+        
+              <div id="date_change">
+            <form id="popup_date" >
+                <div class="selecterror">Field date cannot be left blank!</div>
+                <table>
+                    <tr>
+                        <th>Click TextBox to change date</th> 
+                    </tr>
+                    <tr><td>
+                            <input type="hidden" id="d_id" name="d_id"/>
+                             <input type="text" id="date_field" name="date_field"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="button" value="Change" id="change_date" class="submit-button"/>   
+                       
+                             <input type="button" value="Cancel" id="cancel" class="button"/> 
+                      
+                        </td>
+                       
+                    </tr>
+
+
+                </table>
+            </form>
+        </div>
 
         <!--div id ="showreviewer">Choose Reviewer</div-->
         <script type="text/javascript" src="<?php echo base_url(); ?>scripts/fancybox/source/jquery.fancybox.pack.js"></script>
@@ -153,16 +200,46 @@ $(document).ready(function(){
                 "bJQueryUI": true,
                 "bRetrieve": true
             });
+                             $(function() {
+$( "#start,#end" ).datepicker({
+     changeMonth: true,
+changeYear: true,
+dateFormat: 'yy-mm-dd'
+});
+});
+
+
+
+$('#printer').click(function(){
+    //alert(1);
+    start=$('#start').val();
+    end = $('#end').val();
+    window.location.href="<?php echo base_url();?>assigned_report/getReport/"+start+"/"+end+"/";
+    });
         });
             $(document).ready(function() {
                 $('#data').hide();
-                $('.inline1').click(function(){
-                   $('#labref_no').val($(this).attr('id')); 
+                  $('#date_change').hide();
+
+                
+                
+                  $('.Edit').click(function(){
+                   $('#d_id').val($(this).attr('id')); 
                 });
-                $(".inline1").fancybox({
-           
+                $(".Edit").fancybox({          
 
                 });
+                
+                 $(function() {
+$( "#date_field" ).datepicker({
+     changeMonth: true,
+changeYear: true,
+dateFormat: 'yy-mm-dd'
+});
+});
+            });
+            $('#cancel').click(function(){
+                $.fancybox.close();
             });
 
 
@@ -207,9 +284,51 @@ $(document).ready(function(){
                                 $('div.success').slideDown('slow').animate({opacity: 1.0}, 2000).slideUp('slow');
                                 $.fancybox.close();
 
-
+                                /*
                                 setTimeout(function() {
                                     window.location.href = '<?php echo base_url(); ?>request_management/complete/';
+                                }, 3000);
+                                */
+
+                                return true;
+                            },
+                            error: function(data) {
+                                $('div.error').slideDown('slow').animate({opacity: 1.0}, 5000).slideUp('slow');
+                                $.fancybox.close();
+
+
+                                return false;
+                            }
+                        });
+                        return false;
+                    }
+                });
+                
+                
+                       $('#date_change').click(function() {
+                    var rev = $('#date_field').val();
+                    if (rev == '') {
+                        $('div.selecterror').slideDown('slow').animate({opacity: 1.0}, 3000).slideUp('slow');
+                        return true;
+                    } else {
+
+
+                        var labref = $('#d_id').val();
+                        var data1 = $('#popup_date').serialize();
+                        $.ajax({
+                            type: "POST",
+                            url: "<?php echo base_url(); ?>assign/edit_assignment/" + labref,
+                            data: data1,
+                            success: function(data)
+                            {
+
+                                // var content=$('.refsubs');
+                                alert('Sample Assign Date Update was successfull!');
+                                $.fancybox.close();
+
+
+                                setTimeout(function() {
+                                    window.location.href = '<?php echo base_url(); ?>request_management/assigned_samples/';
                                 }, 3000);
 
                                 return true;
@@ -233,7 +352,36 @@ $(document).ready(function(){
                 });
             });
 
-        </script>
+    //Show reviewer details to whom sample assigned
+    $('.review_in_progress').on("click", function(e){
+        e.preventDefault();
+        labref = $(this).attr('data-labref');
+        reviewer_details_url = "<?php echo base_url(); ?>assign/reviewerDetailsView/" + labref;
+            $.fancybox.open({
+                href:reviewer_details_url,
+                type:'iframe',
+                autoSize:false,
+                autoDimensions: false,
+                width:600
+            })        
+         })
+
+    //Show reviewers to assign to
+    $('.assign_reviewer').on("click",function(e){
+        e.preventDefault();
+        href = $(this).attr('href');
+        labref = $(this).attr('id');
+       
+        //Set labref
+        $('#labref_no').val(labref); 
+        
+        //Pop up reviewer select
+        $.fancybox.open({
+            href:href
+            })
+        });
+    
+    </script>
 
 
     </script>

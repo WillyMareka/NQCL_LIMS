@@ -13,6 +13,23 @@ class Upload extends MY_Controller {
         $this->load->library('excel');
         date_default_timezone_set('Asia/Kuwait');
     }
+    
+    function audit_trail() {
+        $this->logger();
+    }
+    
+    function reviewer_uploads(){
+            
+        $data['labref'] = $this->uri->segment(3);
+        $data['error'] = '';
+        $data['settings_view'] = 'reviewer_upload_v';
+        //$data['supervisor'] = $this->getMySupervisor();
+        $this->base_params($data);
+    
+    }
+    
+    
+    
     function get_data(){
         $test_id= $this->input->post('test');
         $component= $this->input->post('component');
@@ -23,44 +40,10 @@ class Upload extends MY_Controller {
         echo $component.' '. $average.'% (RSD = '.$rsd.'%; n= '.$n.'%)';
     }
     
-    function readWorkbook($labref){
-      
-        $path = "analyst_uploads/" . $labref . ".xlsx";
-        $objPHPExcel = PHPExcel_IOFactory::load($path); 
-        $number = $objPHPExcel ->getSheetCount();
-       
-      
-     for($i=1;$i<=$number-1;$i++){
-        $objPHPExcel->setActiveSheetIndex($i);
-        $objWorksheet = $objPHPExcel->getActiveSheet();
-        $assay_array = array(
-            'test_id' => 2,
-            'component' =>$objWorksheet->getCell('B20')->getValue(),
-            'average' => $objWorksheet->getCell('H72')->getCalculatedValue() * 100,
-            'rsd' => $objWorksheet->getCell('H73')->getCalculatedValue()* 100,
-            'n' => $objWorksheet->getCell('H74')->getCalculatedValue(),
-            'labref'=>$labref
-            
-        );
-        
-        $this->db->insert('component_summary',$assay_array);
-     
-       $diss_array = array(
-            'test_id' => 5,
-            'component' =>$objWorksheet->getCell('B20')->getValue(),
-            'average' => $objWorksheet->getCell('F112')->getCalculatedValue() * 100,
-            'rsd' => $objWorksheet->getCell('F113')->getCalculatedValue()* 100,
-            'n' => $objWorksheet->getCell('F114')->getCalculatedValue(),
-            'labref'=>$labref
-        );
-       
-        $this->db->insert('component_summary',$diss_array);
-      
-   
-     
+    function readWorkbook($labref) {
 
-    }
-    }
+        }
+    
 
     function worksheet($labref) {
         $data['labref'] = $this->uri->segment(3);
@@ -103,45 +86,25 @@ class Upload extends MY_Controller {
     function do_upload() {
 
         $labref = $this->uri->segment(3);
-        $test_id = $this->uri->segment(5);
-        if ($test_id == '50') {
-            $filename = "reviewer_uploads/" . $labref . '_microlal.xlsx';
-        } else if ($test_id == '49') {
-            $filename = "reviewer_uploads/" . $labref . '_micro.xlsx';
-        } else {
-            $filename = "reviewer_uploads/" . $labref . '.xlsx';
-        }
 
-        if (file_exists($filename)) {
+        $filename = "reviewer_uploads/" . $labref . '.xlsx';
+        unlink($filename);
+        $config['upload_path'] = "reviewer_uploads";
+        $config['allowed_types'] = 'xls|xlsx';
+
+        $this->load->library('upload', $config);
+
+        if (!$this->upload->do_upload('worksheet')) {
             $data['labref'] = $this->uri->segment(3);
-            $data['test_id'] = $this->uri->segment(4);
-            $data['settings_view'] = 'file_present_v';
+            $data['error'] = $this->upload->display_errors();
+            $data['test_id'] = $this->uri->segment(5);
+            $data['settings_view'] = 'reviewer_upload_v';
             $this->base_params($data);
         } else {
 
-            $config['upload_path'] = "reviewer_uploads";
-            $config['allowed_types'] = 'xls|xlsx';
-
-
-            $this->load->library('upload', $config);
-            
-
-            if (!$this->upload->do_upload('worksheet')) {
-                $data['labref'] = $this->uri->segment(3);
-                $data['error'] = $this->upload->display_errors();
-                $data['test_id'] = $this->uri->segment(5);
-                $data['settings_view'] = 'upload_v_2';
-                $this->base_params($data);
-            } else {
-              if ($test_id == '50') {
-                  $this->bacterial_endotoxin();
-        } else if ($test_id == '49') {
-            $filename = "reviewer_uploads/" . $labref . '_micro.xlsx';
-            $this->microbial_assay();
-        } else {
-            $this->readexcel();
-        }
-            }
+            $this->readWorkbookUpdate($labref);
+            echo 'Worksheet data is being edited, You will be redirected once update is complete.....';
+            header('Refresh: 3; url='.  base_url()."reviewer");
         }
     }
 
@@ -529,8 +492,8 @@ class Upload extends MY_Controller {
         $this->db->where('labref', $labref)->where('test_id', 49)->update($table, array('determined' => $ass_r, 'complies' => $ass_var));
         $this->db->where('labref', $labref)->where('test_id', 50)->update($table, array('determined' => $diss_r, 'complies' => $diss_var));
         }else{
-        $this->db->where('labref', $labref)->where('test_id', 5)->update($table, array('determined' => $ass_r, 'complies' => $ass_var));
-        $this->db->where('labref', $labref)->where('test_id', 2)->update($table, array('determined' => $diss_r, 'complies' => $diss_var));  
+        $this->db->where('labref', $labref)->where('test_id', 2)->update($table, array('determined' => $ass_r, 'complies' => $ass_var));
+        $this->db->where('labref', $labref)->where('test_id', 5)->update($table, array('determined' => $diss_r, 'complies' => $diss_var));  
         }
         $this->updateAccross();
         $this->updateAnalyst($labref);
@@ -701,8 +664,8 @@ class Upload extends MY_Controller {
         return implode(':', $time_array);
     }
         function updateAnalyst($labref){
-            $this->db->where('labref',$labref);
-                $this->db->update('sample_issuance',array('status'=>'1'));
+           // $this->db->where('lab_ref_no',$labref);
+                //$this->db->update('sample_issuance',array('u_stat'=>'1'));
 
     }
     function save_assay($data) {
@@ -781,8 +744,10 @@ class Upload extends MY_Controller {
         $this->addSampleTrackingInformation();
        if($this->uri->segment(4) > 30){
         $this->approveMicro();
+        echo 'more';
        }else{
-         $this->approve();  
+         $this->approve(); 
+         echo 'less';
        }
         
     }
@@ -840,6 +805,20 @@ class Upload extends MY_Controller {
             'stage'=>'8',
             'current_location' => 'Documentation'
         );
+        
+           $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>'Documentation',
+                     'activity'=>'Draft COA', 
+                     'user_id'=>'0',
+                     'date_issued'=>date('Y-m-d')
+                     
+                 ));
+        
+            $this->db->where('labref', $labref);
+               $this->db->where('activity','Review');
+            $this->db->update('sample_details', array('date_returned'=>date('Y-m-d')));
+        
         $this->db->where('labref', $labref);
         $this->db->update('worksheet_tracking', $array_data);
     }
@@ -853,13 +832,7 @@ class Upload extends MY_Controller {
         //print_r($result);
     }
 
-    public function getUsersInfo() {
-        $user_id = $this->session->userdata('user_id');
-        $this->db->select('fname,lname');
-        $this->db->where('id', $user_id);
-        $query = $this->db->get('user');
-        return $result = $query->result();
-    }
+ 
     
     
 
@@ -915,7 +888,7 @@ class Upload extends MY_Controller {
             'status' => '1',
             'time_done ' => $date
         );
-        $this->db->where('test_id', $test_id);
+       // $this->db->where('test_id', $test_id);
         $this->db->where('folder', $labref);
         $this->db->update('reviewer_worksheets', $data);
         
@@ -929,7 +902,7 @@ class Upload extends MY_Controller {
         $this->db->update('review_samples', $data1);
         
         
-        redirect('reviewer');
+       // redirect('reviewer');
     }
     
        function approveMicro() {

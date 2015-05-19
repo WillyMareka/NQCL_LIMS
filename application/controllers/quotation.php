@@ -3,6 +3,7 @@ class Quotation extends MY_Controller {
 
 	function __construct() {
 		parent::__construct();
+		$this->load->library('excel');
 	}
 
 
@@ -330,7 +331,7 @@ class Quotation extends MY_Controller {
 	public function getProformaNo($p_no, $c, $d){
 
 			//Condition checks whether proforma_no has been selected in generate quotation view
-			if(!empty($p_no) && $p_no != 'New'){
+			if(!empty($p_no) || $p_no != 'New'){
 				$proforma_no = $p_no;
 			}
 			else if(empty($p_no) || $p_no == 'New'){
@@ -449,7 +450,10 @@ class Quotation extends MY_Controller {
 	            $client_number = $cid[0]['max'] + 1;
 	            $this -> saveClientAsUser();
 	        }
+	        
+	        var_dump($client_number);
 	        return $client_number;
+
 		}
 
 		public function getQuotationId(){
@@ -472,7 +476,7 @@ class Quotation extends MY_Controller {
 		public function getQuotationNo($c, $q){
 
 			//Condition checks whether quotation_no has been selected in generate quotation view
-			if(!empty($q)){
+			if(!empty($q) && $q != 'New'){
 				$quotation_no = $q;
 			}
 			else if(empty($q) || $q == 'New'){
@@ -491,6 +495,8 @@ class Quotation extends MY_Controller {
 			}
 
 			return $quotation_no;
+
+			var_dump($quotation_no);
 		}
 
 
@@ -731,7 +737,7 @@ class Quotation extends MY_Controller {
 		$ref = 'request_id';
 		$status = 'invoice_print_status';
 
-        //DOMpdf initialization
+        /*DOMpdf initialization
         require_once("application/helpers/dompdf/dompdf_config.inc.php");
         $this->load->helper('dompdf', 'file');
         $this->load->helper('file');
@@ -739,6 +745,7 @@ class Quotation extends MY_Controller {
         //DOMpdf configuration
         $dompdf = new DOMPDF();
         $dompdf->set_paper('A4');
+        */
 
         //
        	$data['reqid'] = $reqid = $this -> uri -> segment(3);	
@@ -746,8 +753,16 @@ class Quotation extends MY_Controller {
        	$invoicename = "Invoice_" . $data['reqid'] . ".pdf";
 			
 		$data['test_data'] = Invoice_billing::getChargesPerClient($data['reqid']);
-		$data['invoice_data'] = Request::getInvoiceDetails($data['reqid']);
+		$data['invoice_data'] = $invoice_data = Request::getInvoiceDetails($data['reqid']);
 
+		//Get client info from main array
+		$client_info = $invoice_data[0]['Clients'];
+
+		//Get Invoice Number
+		$coa_nos = Coa_number::getCoaNo($data['reqid']);
+		$year = date('Y');
+		$data['invoice_number'] = "/".$coa_nos[0]['number'];
+		
 		//Get client id
 		$data['client_id']  = $this -> uri -> segment(7);
 
@@ -780,21 +795,76 @@ class Quotation extends MY_Controller {
 		$data['method'] = $this -> router -> fetch_method();
 
 		//Get Signatory Details
-		$signatory_title = $this -> uri -> segment(8);
-		$signatory = $this -> uri -> segment(9);
+
+		$signatory = $this -> uri -> segment(8);
+		$signatory_title = $this -> uri -> segment(9);
 
 		//Replace special characters in signatory details
 		$data['signatory'] = str_replace("%20", " ", $signatory_title);
 		$data['signatory_title'] = str_replace("%20", " ", $signatory);
 
-		//Push to view
-        $html = $this->load->view('invoice_pdf_v', $data, TRUE);
-        $dompdf->load_html($html);
+		/*Push to view
+        $html = 
+		$this->load->view('invoice_pdf_v', $data, TRUE);
+        
+		$html = $this -> load -> view('invoice_pdf_v', $data, TRUE);	
+		$dompdf->load_html($html);
         $dompdf->render();
         write_file($saveTo . "/" . $invoicename, $dompdf->output());
+        */
 		
+        //Excel Initialization
+        $ei = new PHPExcel();
+
+        //Get excel sheet metadata
+        $creator = $this -> session -> userdata('full_name');
+        $general_title = 'Invoice';
+        $title = 'Invoice'." ".$data['reqid'];
+        $description = 'Invoice for'." ".$data['reqid'];
+        $subject = 'Final Invoice';
+        $keywords = 'invoice, quotation, finance, pro forma';
+        $category = 'Finance';
+
+        //Set File Name
+        $file_name = 'Invoice_'.$data['reqid'].'.xlsx';
+
+        //Set excel sheet metadata
+        $ei -> getProperties()
+        	-> setCreator($creator)
+        	-> setTitle($title)
+        	-> setLastModifiedBy($creator)
+        	-> setSubject($subject)
+        	-> setKeywords($keywords)
+        	-> setCategory($category)
+        	;
+
+        //Set reference to worksheet
+        $inv = $ei->getSheet(0);
+        $inv -> setTitle($title);
+
+		//Set descriptive items data
+		$inv -> setCellValue('c1', $general_title);        
+
+		//var_dump(base_url()."invoices/".$title."/".$file_name);
+
+		//Fill Client Address Info
+		$inv->fromArray($client_info, '', 'A4');
+
+		//Define the invoices folder
+		$inv_dir = "invoices";
+
+		//Condition to find out if the folder exists/not
+		if(!file_exists($inv_dir)){
+			mkdir($inv_dir, 0744);
+		}
+
+		//Save excel sheet
+		$writer = \PHPExcel_IOFactory::createWriter($ei,'Excel2007');
+		$writer->setOffice2003Compatibility(true); 
+		$writer->save($inv_dir."/".$file_name);
+
         //Set invoice print status
-        $this -> setInvoicePrintStatus($reqid, $saveTo, $invoicename, $main_table, $ref, $status);
+        //$this -> setInvoicePrintStatus($reqid, $saveTo, $invoicename, $main_table, $ref, $status);
 	}
 
 	public function showInvoiceBeforePrint(){
@@ -845,8 +915,18 @@ class Quotation extends MY_Controller {
 			$data['discount_csp'] = 1;
 		}
 
+	
+		//Get Invoice Number
+		$coa_nos = Coa_number::getCoaNo($data['reqid']);
+		$year = date('Y');
+		$data['invoice_number'] = "/".$coa_nos[0]['number'];
+		
+		//Get Signatory Details
+		$data['signatory'] = "Hezekiah Chepkwony";
+		$data['signatory_title'] = "Dr.";
+		
 		//Set view, load it
-		$data['content_view'] = 'invoice_before_print_v';
+		$data['content_view'] = 'invoice_pdf_v';
 		$this -> load -> view('template1', $data);	
 	
 	}

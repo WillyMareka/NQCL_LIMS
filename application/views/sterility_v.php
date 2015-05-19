@@ -150,7 +150,7 @@
                                                                 duration: 5
 
                                                             });
-                                                            window.location.href = "<?php echo base_url() . 'analyst_controller'; ?>";
+                                                        //    window.location.href = "<?php echo base_url() . 'analyst_controller'; ?>";
 
                                                             $('#Save_data').prop('disabled', false);
                                                             $('#Save_data').prop('value', 'Save');
@@ -234,7 +234,7 @@
                                                                                                         duration: 5
 
                                                                                                     });
-                                                                                                    window.location.href = "<?php echo base_url() . 'analyst_controller'; ?>";
+                                                                                                 //   window.location.href = "<?php echo base_url() . 'analyst_controller'; ?>";
 
                                                                                                     // $('#middle_assay,#last_part').slideUp('fast');
                                                                                                     $('#Save_data').show();
@@ -316,19 +316,19 @@
                 </tr>
                 <tr style="margin:5px;">
                     <td colspan=5 width=213 height=9 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
-                        <input type="text" name="microlab_no" class="micro" id="microlab_no" style="width:100%;" value="<?php echo @$micro_number; ?>"/>
+                        <input type="text" name="microlab_no" class="micro comcom" id="microlab_no" style="width:100%;" value="<?php echo @$micro_number; ?>"/>
 
                     </td>
                     <td colspan=6 width=142 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
-                        <input type="text" name="date_rec" class="micro" id="date_rec" value="<?php echo $date[0]->created_at; ?>"style="width:100%;"/>
+                        <input type="text" name="date_rec" class="micro com" id="date_rec" value="<?php echo $date[0]->created_at; ?>"style="width:100%;"/>
 
                     </td>
                     <td colspan=4 width=154 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
-                        <input type="text" name="date_set" class="micro" id="date_set" style="width:100%;"/>
+                        <input type="text" name="date_set" class="micro com" id="date_set" style="width:100%;"/>
 
                     </td>
                     <td colspan=3 width=129 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
-                        <input type="text" name="date_of_results" class="micro" id="date_of_results" style="width:100%;"/>
+                        <input type="text" name="date_of_results" class="micro com" id="date_of_results" style="width:100%;"/>
 
                     </td>
                 </tr>
@@ -369,14 +369,14 @@
                                 Used per filtration/Per media:</span></font></font></p>
                     </td>
                     <td colspan=7 width=297 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
-                        <select name="qty" id="measure" class="micro">
+                        <select name="qty" id="measure" class="micro com">
                             <option value=""></option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="4">4</option>
                             <option value="6">6</option>
                         </select>
-                        <select name="measure" id="measure" class="micro">
+                        <select name="measure" id="measure" class="micro com">
                             <option value="">-select-</option>
                             <option value="Vials">Vial(s)</option>
                             <option value="Ampules">Ampoule(s)</option>
@@ -673,7 +673,7 @@
                     </td>
                     <td colspan=3 width=49 valign=top style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                         <p class="western" align=right>
-                <center><input type="radio" name="comply" value="No Microbial Growth"/></center>
+                <center><input type="radio" class="com" name="comply" value="No Microbial Growth"/></center>
                 </p>
                 </td>
                 <td colspan=6 width=238 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
@@ -687,7 +687,7 @@
                 <tr>
                     <td colspan=3 width=49 valign=top style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">
                         <p class="western" align=right>
-                <center><input type="radio" name="comply" value="Microbial Growth"/></center>
+                <center><input type="radio" class="com" name="comply" value="Microbial Growth"/></center>
                 </p>
                 </td>
                 <td colspan=6 width=238 style="border: 1px solid #00000a; padding-top: 0in; padding-bottom: 0in; padding-left: 0.08in; padding-right: 0.08in">

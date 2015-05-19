@@ -1,5 +1,6 @@
 <head> 
-    
+     <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />
 
     <title><?php echo $title;?></title>
     <script src="<?php echo base_url() . 'Scripts/jquery-1.10.2.js' ?>"></script>

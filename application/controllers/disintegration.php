@@ -56,14 +56,17 @@ class Disintegration extends MY_Controller {
                 'repeat_status'=>$new_status
             ); 
              $this->db->insert('disintegration', $disintegration);
-      
-            
+             $this->RegisterpDissIValues($labref, $new_status);
+                    $test_id=  $this->uri->segment(4);
+                $this->deletePDFgen($labref, $test_id, $analyst_id);
+       $pdf_name=$labref.'_disintegration';
+       $this->insertPDFgen($labref, $pdf_name, $test_id, $analyst_id);
              $this->updateSampleIssuance();
             $this->updateTestIssuanceStatus();
             $this->updateSampleSummary();
             $this->post_posting();
             $this->save_test();
-             $test_id=  $this->uri->segment(4);
+      
         $this->updateUploadStatus($labref, $test_id);
             //$this->updateTabsCapsCOADetails($labref);
             //$sql1 = "UPDATE worksheets SET comment='$comment' WHERE labref='$labref'";
@@ -74,6 +77,68 @@ class Disintegration extends MY_Controller {
         //redirect('assay/assay_page/' . $labref);
       
         
+    }
+    
+         function RegisterpDissIValues($labref,$r) {
+        if (file_exists('samplepdfs/'.$labref.'_disintegration.pdf')) {
+           unlink('samplepdfs/'.$labref.'_disintegration.pdf');
+        } else {
+           // echo 'Not found';
+        }
+        
+        
+      
+        $bottom = $this->getDisintegrationData($labref, $r);
+  
+        
+
+        $full_name = 'samplepdfs/disintegration.pdf';     
+        $pdf = new FPDI('P', 'mm', 'A4');
+        $pdf->AliasNbPages();
+
+        $pagecount = $pdf->setSourceFile($full_name);
+
+        $i = 1;
+        do {
+            // add a page
+            $pdf->AddPage();
+            // import page
+            $tplidx = $pdf->ImportPage($i);
+
+            $pdf->useTemplate($tplidx, 10, 10, 200);
+
+            $pdf->SetFont('Arial','B');
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFontSize(9);
+            
+            $xa=1;
+            
+            
+     
+            $pdf->SetFont('Arial');
+
+
+            $pdf->SetXY(87, 72);
+            $pdf->Write(1, $bottom[0]->	dis_medium);
+
+
+        
+            $pdf->SetXY(87, 92);
+            $pdf->Write(1, $bottom[0]->duration);
+
+            $pdf->SetXY(87, 114);
+            $pdf->MultiCell(100, 5, $bottom[0]->results_observed, 0, 'L');
+
+            $pdf->SetXY(60, 129);
+            $pdf->MultiCell(105, 10, $bottom[0]->comments, 0, 'L');
+
+
+
+            $i++;
+        } while ($i <= $pagecount);
+        $pdf->Output('samplepdfs/'.$labref.'_disintegration.pdf', 'F');
+         
+        echo 'Done';
     }
     
     

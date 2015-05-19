@@ -74,7 +74,8 @@ class Dashboard_control extends MY_Controller {
     }
     function changes_made($labref){
      $data['changes_made']=  $this->getCOAChanges($labref);
-     $this->load->view('dashboard_view/coa_changes_v',$data);
+     $data['contents']='dashboard_view/coa_changes_v';
+    
     }
     function show(){
     $username=shell_exec("echo %username%" );

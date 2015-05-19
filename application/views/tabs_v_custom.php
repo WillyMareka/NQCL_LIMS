@@ -96,9 +96,11 @@
 
             /* Super! */
         </style>
-
+<script src="http://jqueryvalidation.org/files/dist/jquery.validate.min.js"></script>
+<script src="http://jqueryvalidation.org/files/dist/additional-methods.min.js"></script>
         <script type="text/javascript">
             $(document).ready(function() {
+                      
                  i=1; 
                 $data = "<?php echo Sample_issuance::getCompendiaStatus($labref, $test_id);?>";
                 console.log($data);
@@ -133,6 +135,24 @@
                     prompt_dialog();
 
                 }
+                
+//                $(document).on('keyup','.num',function(){
+//              value = $('#av1').val();
+//              if(value === 'NaN'){
+//                  alert('Please Enter a valid number');
+//              }
+//             });
+             
+                function isNumber(evt) {
+
+        var charCode = (evt.which) ? evt.which : event.keyCode
+
+        if (charCode != 45 || charCode != 8 && (charCode != 46 ||   $(this).val().indexOf('.') != -1) && (charCode < 48 || charCode > 57))
+           // alert('The key you pressed is not a number, please enter a valid number');
+            return false;
+
+        return true;
+    } 
 
 
                 $('#Export').click(function() {
@@ -167,8 +187,8 @@
                                                             repeat_no =<?php echo $repeat_no; ?>;
                                                             if (v === 1) {
 
-                                                                $('input:text').val('');
-                                                                $("#com").attr("value", "");
+                                                                //$('input:text').val('');
+                                                               // $("#com").attr("value", "");
                                                                 $('span').css('display', 'none');
                                                                 $('#Export').prop('value','Save Assay');
                                                                 $('#Export').prop('disabled',false);
@@ -187,7 +207,7 @@
                                                     // window.location.href="<?php echo base_url() . 'assay/assay_page/' . $labref; ?>";
                                                 },
                                                 error: function() {
-                                                    $.prompt('An internal problem has been experienced, data could not be exported!');
+                                                    $.prompt('An internal problem has been experienced, data could not be saved!');
                                                 }
 
 
@@ -227,14 +247,21 @@
                                         });
                                     }
 
-$('.num').live('keyup',function () {
+$('.num').live('keyup',function () {      
     average();
+         value = $('#av1').val();
+         if(value === 'NaN'){  
+             $('#Export').hide();
+             alert('Please Enter a valid number');                              
+         }else{
+                  $('#Export').show();
+         }
     });
 
                              
 
         $('#addRow').click(function(){
-          
+          $('#counter').html('No of rows: ' +i);
         table= $('#TabsTabeUniformity > tbody');
         newRow =  "<tr><td><div align='center'>"+i+"</div></td>\n\
                        <td><input type='text' id='tcsv1' name='tabdata[]' size='25' class='num' required tabindex='1'/></td>\n\
@@ -272,6 +299,10 @@ $('.num').live('keyup',function () {
         });
         $('input#av1').val(answer1);
         }
+        
+        $('#s_form').click(function(){
+            window.location.href ="<?php echo site_url('uniformity/worksheet/'.$labref.'/6/2');?>";
+        });
 
            });
 
@@ -288,20 +319,21 @@ $('.num').live('keyup',function () {
         <script src="<?php echo base_url(); ?>javascripts/jquery.validation.functions.js?1500" type="text/javascript">
         </script>
     </head>
-sdsd
+
     <p>
         <br>
          <br>
           <br>
            <br>
-    <legend>  &#187; <?php echo anchor(base_url().'analyst_controller','Back')?></legend>
+    <legend>  &#187; <?php echo anchor(base_url().'analyst_controller','Back')?> || <button id='s_form' >Switch Uniformity form &#187 Caps, Sachets etc... form</button> </legend> 
     <p>
     <center><legend><h2>NQCL &#187; Uniformity Testing - Tablets &#187; Sample: <?php echo $labref; ?> </h2></legend></center><hr>
     <div id="Individual_box">
         <?php $attributes = array('id' => 'tabsForm'); ?>
         <?php echo form_open('tabs/save_tablet_weights/' . $labrefuri, $attributes); ?> 
         <table id="TabsTabeUniformity"  border="0" align="center" cellpadding="0" cellspacing="0" class="dave-table">
-            <tbody>
+            <th id="counter"></th>
+            <tbody>                
             <tr>
                 <td height="53"><div align="center">No.</div></td>
                 <td  align="center" valign="middle"><p align="center">Tablets (mg)</p></td>

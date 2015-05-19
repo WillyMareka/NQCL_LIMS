@@ -265,10 +265,10 @@
 
                                                     if (v === true) {
 
-                                                        $('input:text, textarea').val('');
+                                                       $('input:text, textarea').val('');
                                                         $("#com").attr("value", "");
-                                                        $('span').css('display', 'none');
-                                                        prompt_dialog();
+                                                      $('span').css('display', 'none');
+                                                       prompt_dialog();
 
 
 

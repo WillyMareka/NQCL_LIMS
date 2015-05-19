@@ -35,7 +35,7 @@ class Coa_number extends Doctrine_Record {
 		-> from('coa_number')
 		-> where('request_id =?', $reqid);
 		$coaNoData = $query -> execute();
-		return $coaNoData[0];
+		return $coaNoData;
 	}
 
 

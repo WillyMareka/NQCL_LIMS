@@ -1,6 +1,7 @@
 <head> 
     
-
+ <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />
     <title><?php echo $title;?></title>
     <script src="<?php echo base_url() . 'Scripts/jquery-1.10.2.js' ?>"></script>
     <script src="<?php echo base_url() . 'Scripts/migrate.js' ?>"></script>
@@ -375,7 +376,7 @@
                         <tr>
                             <td height="40" align="center" valign="middle" id="side"><?php echo $information[0]->clientsampleref; ?></td>
                             <td align="left" valign="bottom" id="label_name"><span>TEST(S) REQUESTED</span></td>
-                            <td align="left" valign="bottom" id="wording"><?php echo $tests_requested; ?></td>
+                            <td align="left" valign="bottom" id="wording" style="font-size: 16px;"><?php echo $tests_requested; ?></td>
                         </tr>
                     </table>
                 </div>
@@ -412,11 +413,11 @@
 
                             <tr class="_rows">
                                 <?php if($trd[$i]->test_id==2){?>
-                                <td height="56"  rowspan="<?php count($determined);?>" align="center" valign="middle" id="side"><?php echo $trd[$i]->name ?>
+                                <td height="56"  rowspan="<?php count($determined);?>" align="center" valign="middle" id="side" style="font-size: 16px;"><?php echo $trd[$i]->name ?>
                                     <input type="hidden" name="tests[]" value="<?php echo $trd[$i]->test_id ?>"/>
                                 </td>
                                 <?php }else{?>                                
-                                  <td height="56"  align="center" valign="middle" id="side"><?php echo $trd[$i]->name ?>
+                                  <td height="56"  align="center" valign="middle" id="side" style="font-size: 16px;"><?php echo $trd[$i]->name ?>
                                     <input type="hidden" name="tests[]" value="<?php echo $trd[$i]->test_id ?>"/>
                                 </td>
                                 <?php } ?>

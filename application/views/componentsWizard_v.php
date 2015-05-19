@@ -27,6 +27,12 @@
                 </fieldset>
         
             <?php } ?>
+                <fieldset>
+                    <legend>Enter Limits</legend>
+                    <label>
+                        <textarea class = "limits" name="limits" placeholder="e.g 2.89% - 5.90%" ></textarea>
+                    </label>
+                </fieldset>
             <?php if(count($components) < 2) { ?>
                 <fieldset>
                     <legend>Save Component</legend>

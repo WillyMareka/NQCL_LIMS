@@ -1,0 +1,15 @@
+{
+  "name": "jWizard",
+  "homepage": "https://github.com/dominicbarnes/jWizard",
+  "version": "2.0.0",
+  "_release": "2.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.0.0",
+    "commit": "de36cdbb328d0c2f429f6a276354bea6e189acbb"
+  },
+  "_source": "git://github.com/dominicbarnes/jWizard.git",
+  "_target": "~2.0.0",
+  "_originalSource": "dominicbarnes/jWizard",
+  "_direct": true
+}

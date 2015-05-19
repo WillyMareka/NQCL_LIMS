@@ -45,6 +45,10 @@ class Request extends Doctrine_Record {
 		$this -> hasColumn('proforma_no_status', 'int', 11);
 		$this -> hasColumn('proforma_no','varchar', 50);
 		$this -> hasColumn('client_agent_id','int', 11);
+		$this -> hasColumn('client_agent_id','int', 11);
+		$this -> hasColumn('compliance','varchar', 50);
+		$this -> hasColumn('priority','varchar', 50);
+		$this -> hasColumn('oos','int', 11);
 	}
 	
 	
@@ -79,7 +83,7 @@ class Request extends Doctrine_Record {
 			'foreign' => 'request_id'			
 		));
 
-		$this -> hasOne('Request_details',array(
+		$this -> hasMany('Request_details',array(
 			'local' => 'request_id',
 			'foreign' => 'request_id'			
 		));
@@ -107,7 +111,22 @@ class Request extends Doctrine_Record {
 		return $componentData;
 	}
 
+	public function getAllCount(){
+		$query = Doctrine_Query::create()
+		-> select("count(*) as count")
+		-> from("request");
+		$countData = $query->execute();
+		return $countData;
+	}
 
+	public function getAllActiveIngs(){
+		$query = Doctrine_Query::create()
+		-> select("active_ing")
+		-> from("request")
+		-> groupBy("active_ing");
+		$ingData = $query->execute();
+		return $ingData;
+	}
 	public function getProformaCountPerClient($c, $d){
 		$query = Doctrine_Query::create()
 		-> select("count(*)")
@@ -149,7 +168,7 @@ class Request extends Doctrine_Record {
 
 	public function getInvoiceDetails($r){
 		$query = Doctrine_Query::create()
-		-> select("r.request_id as LABORATORY_REF_NO, c.Name as Client_Name, c.Address as Client_Address, c.email as Client_Email, r.clientsampleref as CLIENT_REF_NO, r.id,r.product_name as PRODUCT, r.batch_no as BATCH_NO, coa.full_number as CERTIFICATE_NO, , 
+		-> select("r.request_id as LABORATORY_REF_NO, c.Name as Clients_Name, c.Address as Clients_Address, c.email as Clients_Email, r.clientsampleref as CLIENT_REF_NO, r.id,r.product_name as PRODUCT, r.batch_no as BATCH_NO, coa.full_number as CERTIFICATE_NO, , 
 			 rq.id, t.Name")
 		-> from("request r")
 		-> leftJoin("r.Clients c")
@@ -281,10 +300,57 @@ class Request extends Doctrine_Record {
 		return $requestData;
 	}
 
+
+	public function getSingleHydratedSelect($reqid) {
+		$query = Doctrine_Query::create() 
+		-> select("r.request_id, r.sample_qty, r.product_name, r.active_ing, r.label_claim, r.Manufacturer_Name, r.Manufacturer_add, 
+			r.batch_no, r.exp_date, r.Manufacture_date, r.Designator_Name, r.Designation, r.Designation_date,r.product_lic_no, 
+			r.country_of_origin, r.clientsampleref, p.name as packaging_name")
+		-> from("request r")
+		-> innerJoin("r.Packaging p")
+		-> where("request_id =?", $reqid);
+		$requestData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $requestData;
+	}
+	
+	public function getOosStatus($r){
+		$query = Doctrine_Query::create()
+		-> select("r.oos")
+		-> from("request r")
+		-> where("r.oos =?", $r);
+		$oosData= $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $oosData;
+	}
+	
+
 	public function getAllHydrated() {
 		$query = Doctrine_Query::create() 
 		-> select("r.*, c.*, p.*, sp.*")
 		-> from("request r")
+		-> leftJoin("r.Clients c")
+		-> leftJoin("r.Packaging p")
+		-> leftJoin("r.Split sp")
+		-> where("YEAR(r.designation_date)=?", date('Y'));
+		$requestData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $requestData;
+	}
+	
+	public function getAllHydratedAll() {
+		$query = Doctrine_Query::create() 
+		-> select("r.*, c.*, p.*, sp.*")
+		-> from("request r")
+		-> leftJoin("r.Clients c")
+		-> leftJoin("r.Packaging p")
+		-> leftJoin("r.Split sp");
+		$requestData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $requestData;
+	}
+	
+	public function getAllHydratedOos() {
+		$query = Doctrine_Query::create() 
+		-> select("r.*, c.*, p.*, sp.*")
+		-> from("request r")
+		->where("oos =?",1)
 		-> leftJoin("r.Clients c")
 		-> leftJoin("r.Packaging p")
 		-> leftJoin("r.Split sp");
@@ -380,6 +446,15 @@ class Request extends Doctrine_Record {
 		-> from("request");
 		$lastreqid = $query -> execute() -> toArray();
 		return $lastreqid;
+	}
+	
+		public function getQuantity($r){
+		$query = Doctrine_Query::create()
+		-> select("sample_qty")
+		-> from("request")
+		-> where("request_id = ?", $r);
+		$qtydata = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $qtydata;
 	}
 	
 }

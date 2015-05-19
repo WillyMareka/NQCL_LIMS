@@ -1,4 +1,4 @@
-<legend><a href="<?php echo base_url(); ?>" >Home</a> </legend>
+<legend><a href="<?php echo base_url(); ?>supervisors" >Home</a> | <a href="<?php echo base_url();?>supervisors/notifications/">Notifications (<?php echo $noty;?>)</a></legend>
 
 <hr />
 <style type="text/css">

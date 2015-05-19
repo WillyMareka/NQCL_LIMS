@@ -110,6 +110,25 @@
     
     
     $(document).ready(function(){
+        
+  $('input').keyup(function(e){
+if(e.which==39)
+$(this).closest('td').next().find('input').focus();
+else if(e.which==37)
+$(this).closest('td').prev().find('input').focus();
+else if(e.which==40)
+$(this).closest('tr').next().find('td:eq('+$(this).closest('td').index()+')').find('input').focus();
+else if(e.which==38)
+$(this).closest('tr').prev().find('td:eq('+$(this).closest('td').index()+')').find('input').focus();
+});
+
+$('input:text').keypress(function(event){
+        if(event.keyCode==13)
+        {
+            event.preventDefault();
+
+            }
+        })
        i=1;
 $('.num').live('keyup',function () {
     average();
@@ -134,15 +153,18 @@ $('.num').live('keyup',function () {
             value1 =  parseFloat(val);          
             val_ = $(this).closest('.tg-table-light tr').find('.num1').val();
             value2= parseFloat(val_);
-           
-            $('.num2', this).val(value1-value2);
+            answer = value1-value2;
+            final = answer.toFixed(2);
+            $('.num2', this).val(final);
         
 
         });     
                 
             
 
-        $('#addRow').click(function(){          
+        $('#addRow').click(function(e){  
+             $('#counter').html('No of rows: ' +i);
+            e.preventDefault();
         table= $('.tg-table-light > tbody');
         newRow =  "<tr class='tg-even'><td><div align='center'>"+i+"</div></td>\n\
                        <td><input type='text' id='' name='capsdata1[]' size='20' class='num' required tabindex='1'/></td>\n\
@@ -193,13 +215,18 @@ $('.num').live('keyup',function () {
         });
         $('input#uav3').val(answer1);
         } 
+        
+           $('#s_form').click(function(){
+            window.location.href ="<?php echo site_url('uniformity/worksheet/'.$labref.'/6/1');?>";
+        });
     });
 </script>
 <link type='text/css' href='<?php echo base_url(); ?>stylesheets/css/zebra_dialog.css' rel='stylesheet' media='screen' /></script>
 <!--<script src="<?php echo base_url(); ?>javascripts/nqcl_1.js?1500" type="text/javascript"></script>-->
 <script type='text/javascript' src='<?php echo base_url(); ?>javascripts/zebra_dialog.js'></script>
 <form name="" action="#" id="capsForm">
-    <legend>  &#171; <?php echo anchor('analyst_controller','Back')?></legend>
+       <legend>  &#187; <?php echo anchor(base_url().'analyst_controller','Back')?> || <button id='s_form' >Switch Uniformity form &#187 Tablets</button> </legend> 
+
     <center>
         <div class="uniformity">
            <legend><h4>&#8801; NQCL &#187; UNIFORMITY OF WEIGHT &#187 CAPSULES/SACHETS & VIALS &#187; SAMPLE : <?php echo $labref; ?> </h4></legend>
@@ -225,6 +252,7 @@ $('.num').live('keyup',function () {
                 </tr>
             </table>-->
             <table class="tg-table-light">
+                <tr><th colspan="4" id="counter"></th></tr>
                 <tr>
                     <th>No.</th>
                     <th>Capsules/<br>Sachets/Vials  (mg)</th>
@@ -269,22 +297,7 @@ $('.num').live('keyup',function () {
 <script>
     $(document).ready(function() {
 
-        $('input').live("keypress", function(e) {
-            /* ENTER PRESSED*/
-            if (e.keyCode === 13 || e.keyCode === 40) {
-                /* FOCUS ELEMENT */
-                var inputs = $(this).parents("form").eq(0).find(":input:visible:not(disabled):not([readonly])");
-                var idx = inputs.index(this);
-
-                if (idx === inputs.length - 1) {
-                    inputs[0].select();
-                } else {
-                    inputs[idx + 1].focus(); //  handles submit buttons
-                    inputs[idx + 1].select();
-                }
-                return false;
-            }
-        });
+    
 
      /*   repeat_no =<?php echo $repeat_no; ?>;
         if (repeat_no === 1) {
@@ -310,8 +323,8 @@ $('.num').live('keyup',function () {
                     url: "<?php echo base_url(); ?>uniformity/save_capsule_weights/<?php echo $labref.'/'.$test_id; ?>",
                                         data: dataString2,
                                         success: function() {
-                                                            alert('Data Saving Complete');
-                                                         window.location.href = "<?php echo base_url() . 'analyst_controller'?>";
+                                                         //   alert('Data Saving Complete');
+                                                        // window.location.href = "<?php echo base_url() . 'analyst_controller'?>";
 
                                                 
                                           

@@ -1,5 +1,6 @@
 <?php
-class Chroma_conditions extends MY_Controller {
+require APPPATH.'controllers/analyst_controller.php';
+class Chroma_conditions extends Analyst_Controller {
 	
 
 public function index(){
@@ -21,6 +22,33 @@ $data=array();
 $data['content_view'] = "chroma_hplc";
 $this -> load -> view("template1", $data);	
 	
+}
+
+public function getAssayColumn(){
+//Get uri segments
+$reqid = $this -> uri -> segment(3);
+$test_id = $this -> uri -> segment(4);
+
+//Get Column Number
+$column_no = Columns_usage::getColumnNumber($reqid, $test_id);
+$c_no = $column_no[0]["columns"]["column_no"];
+$c_id = $column_no[0]["column_id"];
+//Return Json to View
+	if(!empty($column_no)){
+		$column_details = Columns::getColumns($c_no);
+		$chromatographic_conditions = Chromatographic_conditions::getConditions($reqid, $test_id, $c_id);
+		echo json_encode(array(
+			'status' => 'success',
+			'details' => $column_details,
+			'conditions' => $chromatographic_conditions
+		));
+	}
+	else{
+		echo json_encode(array(
+			'status' => 'error',
+			'details' => 'Assay column not found. Please do Assay first.'
+		));
+	}
 }
 
 
@@ -181,6 +209,7 @@ public function save(){
 	//Update chromatographic conditions status to 0
 	$this -> db -> where($chroma_where_array);
 	$this -> db -> update('sample_issuance', $chroma_update_array);	
+      //  $this->RegisterStandards($reqid);
 
 }
 
@@ -211,9 +240,17 @@ public function suggestions()
 		$term = $this->input->post('term',TRUE);
 		$rows = $this->GetAutocomplete(array($column => $term), $table, $column);
 		$keywords = array();
-		foreach ($rows as $row)
+		//var_dump($keywords);
+		foreach ($rows as $row){
 			array_push($keywords, $row-> $column);
-		echo json_encode($keywords);
+		}
+
+		if(!empty($keywords)){
+			echo json_encode($keywords);
+		}
+		else{
+			echo json_encode(array('error'=>'Not Found'));
+		}
 	}
 
 
@@ -224,6 +261,19 @@ public function suggestions()
 		$ref = str_replace('%20', '_', $ref);
 		$details = $table::$method($ref);
 		echo json_encode($details);
+	}
+
+	//Get fields from main [inventory] table to be used for [usage] table when item does not exist in inventory.
+	function getFields() {
+		$table = $this -> uri -> segment(3);
+		$query = "select column_comment, column_name, data_type 
+				  from information_schema.columns 
+				  where table_name='$table'
+				  and column_comment <> '' 
+				  group by column_name
+				  order by ordinal_position DESC";
+		$fields =  $this->db->query($query)->result_array();	
+		echo json_encode($fields);
 	}
 
 	function pushCodes(){
@@ -273,6 +323,18 @@ public function save_items(){
 
 	//Components per refsub
 	$components = $this -> input -> post("s_components", TRUE);
+        
+        for($i=0;$i<count($reagents);$i++){
+           $reagents1 = array(
+				'reagent_id' => $reagents[$i],
+				'request_id' => $reqid,
+			         'date' => $date,
+				'user_id' => $user_id,
+				//$rgnt -> quantity = $reagents_qty[$i];
+				'unit' => ''
+                                );
+                                $this->db->insert('reagents_usage',$reagents1);
+        }
 	
 	/*Quantity
 	$reagents_qty = $this -> input -> post('reagents_qty', TRUE);
@@ -317,7 +379,8 @@ public function save_items(){
 				$rgnt -> user_id = $user_id;
 				//$rgnt -> quantity = $reagents_qty[$i];
 				$rgnt -> unit = $reagentUnit;
-				$rgnt -> save();
+				//$rgnt -> save();
+                                
 			}
 		}
 	}	
@@ -376,7 +439,10 @@ public function save_items(){
 	$equip_update_where_array = array('lab_ref_no' => $reqid);
 	$equip_update_array = array('equip_status' => '1');
 	$this -> db -> where($equip_update_where_array);
-	$this -> db -> update('sample_issuance', $equip_update_array); 	
+	$this -> db -> update('sample_issuance', $equip_update_array); 
+      //  echo 'oohoohohoho';
+     //   $this->RegisterStandards($reqid);
+        
 }	
 
 

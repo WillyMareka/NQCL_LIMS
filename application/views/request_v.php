@@ -52,6 +52,11 @@
 <script>
 
     $(function() {
+	
+	//Clear test list 
+	console.log($('#testlist').val(''));
+	
+	
         $('#clientform').submit(function(e) {
             e.preventDefault();
 

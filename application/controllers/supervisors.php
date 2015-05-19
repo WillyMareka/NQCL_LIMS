@@ -9,7 +9,27 @@ class Supervisors extends MY_Controller {
     function index() {
         $data['done_tests'] = $this->getTestsDone();
         $data['settings_view'] = 'supervisors_index_v';
+        $data['noty']=  $this->getNotifications();
         $this->base_params($data);
+    }
+    
+    
+    function notifications() {
+        $data['getnoty'] = $this->getNotification_data();
+        $data['settings_view'] = 'supervisors_index_noty';
+        $data['noty']=  $this->getNotifications();
+        $this->base_params($data);
+    }
+    
+    function approve_it($labref){
+         $id=  $this->session->userdata('user_id');
+        $this->db->where('labref',$labref)->where('supervisor_id',$id)->update('analyst_request',array('status'=>'1')); 
+        $this->delete_one($labref);
+        redirect('supervisors/notifications');
+    }
+    
+    function delete_one($labref){
+        $this->db->query("delete from analyst_download_counter where id not in ( select * from ( select min(id) from analyst_download_counter where labref IN ( '$labref') group by test, labref ) tmp ) ");
     }
 
     function home() {
@@ -26,6 +46,7 @@ class Supervisors extends MY_Controller {
         $data['pm_count'] = $this->pm_count();
         //$data['username']=  $this->getUsername();
         $data['settings_view'] = 'supervisors_v';
+         $data['noty']=  $this->getNotifications();
         $this->base_params($data);
     }
 
@@ -37,14 +58,21 @@ class Supervisors extends MY_Controller {
         $result = $query->result();
         return $result;
     }
+    
+    function getNotification_data(){
+        $id=  $this->session->userdata('user_id');
+        return $this->db->where('supervisor_id',$id)->where('status','0')->get('analyst_request')->result();
+    }
 
     function getTestsDone() {
         $supervisor_id = $this->session->userdata('user_id');
         $this->db->select('labref,priority');
         $this->db->where('supervisor_id', $supervisor_id);
        $this->db->where('worksheet_status', 1);
+    $this->db->where('approval_status', 0);
 
         $this->db->group_by('labref');
+       // $this->db->having('approval_status = ', '0');
         //$this->db->group_by('repeat_status');
         $query = $this->db->get('tests_done');
         return $result = $query->result();
@@ -126,6 +154,7 @@ class Supervisors extends MY_Controller {
             $this->db->where('labref', $url);
             $this->db->where('analyst_id', $analyst_id);
             $this->db->where('supervisor_id', $supervisor_id);
+            //$this->db->where('test_name', '!uniformity');
            // $this->db->group_by('test_name');
             $query = $this->db->get('tests_done');
             $result = $query->result();
@@ -158,6 +187,10 @@ class Supervisors extends MY_Controller {
         $query = $this->db->get('user');
         return $result = $query->result();
        // print_r($result);
+    }
+    function getNotifications(){
+        $id=  $this->session->userdata('user_id');
+        return $this->db->where('supervisor_id',$id)->where('status','0')->get('analyst_request')->num_rows();
     }
 
     public function base_params($data) {

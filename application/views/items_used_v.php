@@ -94,7 +94,26 @@
 									dataType: "json",
 									type: "POST",
 									success: function(data){
-										response(data);
+										if(data.error){
+											//Conditions to choose table, name of input field, get name of table
+											table = table_n;
+											position = i;
+											input_position = i-1;
+											console.log(input_position)
+											//Get inputs to use
+											$.getJSON("<?php echo site_url('chroma_conditions/getFields'); ?>" + "/" + table, function(fields){
+												//Loop through gotten fields, append said fields to end of this existing input
+												$.each(fields, function(key, value){
+													//If generated form already exists 
+													if($("[id='"+table+"_added_"+key+position+"']").length < 1){
+														$("<input type = 'text' data-type = '"+value.data_type+"' class = '"+table+"_added' id = '"+table+"_added_"+key+position+"' placeholder = '"+value.column_comment+"' title = '"+value.column_comment+"' name = '"+table+"_"+value.column_name+"[]' />&nbsp;").insertAfter('input[data-no = "'+input_position +'"]');
+													}
+													else{
+														console.log("form exists")
+													}
+												})
+											})
+										}
 									}
 								});
 							},
@@ -108,31 +127,33 @@
 								console.log(table_name)
 								$.getJSON("<?php echo site_url('chroma_conditions/getItems'); ?>" + "/" + ui.item.value + "/" + $('[name="'+u_id+'_name[]"]').attr('id') ,function(items){
 									var details_array = items;
+									console.log(ui.item.value);
 									//console.log(details_array);
-									for(var j = 0; j < details_array.length; j++){
-											var object = details_array[j];
+									if(ui.item.value != "Not Found"){
+										for(var j = 0; j < details_array.length; j++){
+												var object = details_array[j];
 
-												if(table_name == 'equipment'){
-		 											html_array.push("<option value = "+object["id"]+">"+object["serial_no"]+"-"+object["model"]+"-"+object["nqcl_no"]+"</option>")
-												}
-												else if(table_name == 'reagents'){
-													html_array.push("<option value = "+object["id"]+">"+object["batch_no"]+"-"+object["manufacturer"]+"</option>")
-												}
-												else if(table_name == 'refsubs' ){
-													html_array.push("<option value = "+object["id"]+">"+object["rs_code"]+"-"+object["batch_no"]+"-"+object["source"]+"</option>")
-												}
+													if(table_name == 'equipment'){
+			 											html_array.push("<option value = "+object["id"]+">"+object["serial_no"]+"-"+object["model"]+"-"+object["nqcl_no"]+"</option>")
+													}
+													else if(table_name == 'reagents'){
+														html_array.push("<option value = "+object["id"]+">"+object["batch_no"]+"-"+object["manufacturer"]+"</option>")
+													}
+													else if(table_name == 'refsubs' ){
+														html_array.push("<option value = "+object["id"]+">"+object["rs_code"]+"-"+object["batch_no"]+"-"+object["source"]+"</option>")
+													}
 
-											for(var key in object){
-												var attrName = key;
-												var attrValue = object[key];
-													switch(attrName) {
-													case 'id':
-													$('[data-no = '+u_id+hidden_input_counter+'][type = "hidden"]').val(attrValue);
-													break;
-												}
-											}				
+												for(var key in object){
+													var attrName = key;
+													var attrValue = object[key];
+														switch(attrName) {
+														case 'id':
+														$('[data-no = '+u_id+hidden_input_counter+'][type = "hidden"]').val(attrValue);
+														break;
+													}
+												}				
 										}
-										
+
 										console.log(html_array)
 										
 										//Insert select containing selected suggestion options after corresponding text input
@@ -143,6 +164,10 @@
 										else{
 											console.log($('select[name = "'+table_name+'_select[]"][id = "select_'+hidden_input_counter+'"]').html(html_array).insertAfter('input[id = "'+table_name+'"][data-uniq = "'+table_name+hidden_input_counter+'"]'));
 										}
+									}
+									else{
+
+									}
 									})
 								},
 					        Delay : 200
@@ -153,6 +178,14 @@
         });
 
 
+		//Have fields with data-type date prompt Jquery Datepicker
+		$(document).on("click", "[data-type = 'date']", function(){
+			$('input[data-type = "date"]').datepicker({
+				changeMonth: true,
+				changeYear: true,
+				dateFormat: 'yy-mm-dd'
+			});
+		})
 
         
         $('.remove').live('click', function() { 
@@ -172,8 +205,15 @@
 		
 		//$().on("autocomplete", )
 	//function AutoC(){
+		//Initialize variable to hold inventory table name
+		var inventory_table;
+		
 		$('[data-no = "1"]').autocomplete({
 			source: function(request, response) {
+				
+				//Set inventory table name
+				inventory_table = $(this.element).attr('id');
+				
 				$.ajax({
 				url: "<?php echo site_url('chroma_conditions/suggestions'); ?>" + "/" + $(this.element).attr('id') + "/" + $(this.element).attr('data-column'),
 				data: { 
@@ -187,10 +227,31 @@
 				success: function(data){
 					response($.map(data, function(item){
 						var label = item;
-						console.log(label);
-						return{
-							label:item
+						console.log(data)
+						if(label != "Not Found"){
+							return{
+								label:item
+							}
 						}
+						else{
+
+							//Conditions to choose table, name of input field, get name of table
+							table = inventory_table;
+							position = $(this).attr("data-no");
+								//Get inputs to use
+								$.getJSON("<?php echo site_url('chroma_conditions/getFields'); ?>" + "/" + table, function(fields){
+									//Loop through gotten fields, append said fields to end of this existing input
+									$.each(fields, function(key, value){
+										//If generated form already exists 
+										if($("[id='"+table+"_added_"+key+"']").length < 1){
+											$("<input type = 'text' data-type = '"+value.data_type+"' class = '"+table+"_added' id = '"+table+"_added_"+key+"' placeholder = '"+value.column_comment+"' title = '"+value.column_comment+"' name = '"+table+"_"+value.column_name+"[]' />&nbsp;").insertAfter('[id = "'+table+'"][data-no = "1"]');
+										}
+										else{
+											console.log(table+key);
+										}
+									})
+								})
+							}
 					}));
 				}
 			});
@@ -204,6 +265,7 @@
 			$.getJSON("<?php echo site_url('chroma_conditions/getItems'); ?>" + "/" + ui.item.value + "/" + $(this).attr('id') , function(items){
 				var details_array = items;
 				//console.log(details_array);
+				if( ui.item.value != "Not Found"){
 				for(var i = 0; i < details_array.length; i++){
 						var object = details_array[i];
 
@@ -242,6 +304,15 @@
 					else{
 						$('select[name = "'+table_name+'_select[]"][id = "select_1"]').html(html_array).insertAfter('input[id = "'+table_name+'"][data-no = "1"]');		
 					}
+				}
+				else{
+
+					//column = $('[name="'+u_id+'_name[]"]').attr('data-column');
+					$(this).val("This");
+					$(this).attr("placeholder", "placeholder");
+					console.log($(this).attr("placeholder"));
+				}
+				
 				})
 			},
         Delay : 200

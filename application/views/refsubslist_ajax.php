@@ -189,7 +189,6 @@ function getData(){
 	{"sTitle":"Batch No.","mData":"batch_no"},
 	{"sTitle":"NQCL No.","mData":"rs_code"},
 	{"sTitle":"Date Received","mData":"date_received"},
-	{"sTitle":"Effective Date","mData":"effective_date"},
 	{"sTitle":"Date of Expiry","mData":"date_of_expiry",
 		"fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 			var date_of_expiry = $.datepicker.parseDate("yy-mm-dd", sData);
@@ -205,11 +204,19 @@ function getData(){
 					}
 			}
 		},
-	{"sTitle":"Date of Restandardisation","mData":"date_of_restandardisation"},
 	{"sTitle":"Potency","mData":null,
 		"mRender":function(data, type, row){
 			return row.potency + " " + row.potency_unit;
 		}},
+	{"sTitle":"Potency Type","mData":null,
+		"mRender":function(data, type, row){
+			if(row.potency_type != null){
+				return row.potency_type;
+			}
+			else{
+				return 'As Such';
+			}
+	}},
 	{"sTitle":"Quantity","mData":"quantity"},	
 	{"sTitle":"Weight/Volume","mData":null, "mRender":function(data, type, row){
 			return row.init_mass + " " + row.init_mass_unit;

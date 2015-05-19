@@ -38,7 +38,7 @@
 		</tr>
 
 		<tr>
-			<td><label for = "potency">Potency<small><i>&nbsp;(As Such)</i></small></label></td>
+			<td><label for = "potency">Potency</label></td>
 			<td><input name ="potency" type = "text" placeholder = "e.g 100" class = "potency"  />&nbsp;&nbsp;
 				<select name ="p_unit" class = "potency" >
 				  	<option></option>
@@ -53,19 +53,14 @@
 					<option value = "%:v/v">%:v/v</option>
 				</select>
 			</td>
-			<td><label for = "potency_db">Potency<small><i>&nbsp;(On Dried Basis)</i></small></label></td>
-			<td><input name ="potency_db" type = "text" placeholder = "e.g 100" class = "potency"  />&nbsp;&nbsp;
-				<select name ="p_db_unit" class = "potency" >
+			<td><label for = "potency_db">Potency Type</label></td>
+			<td>
+				<select name ="potency_type" class = "validate[required]" >
 					<option></option>
-				  	<option value = "%">%</option>
-				  	<option value ="&#956;g/g">&#956;g/g</option>
-					<option value ="&#956;g/g">&#956;g/mg</option>
-				  	<option value ="mg/g">mg/g</option>
-				  	<option value ="iu/mg">iu/mg</option>
-				  	<option value ="iu/mL">iu/mL</option>
-					<option value = "%:w/w">%:w/w</option>
-					<option value = "%:w/v">%:w/v</option>
-					<option value = "%:v/v">%:v/v</option>
+				  	<option value = "As Such">As Such</option>
+				  	<option value ="On Dried Basis">On Dried Basis</option>
+					<option val
+					ue ="Anhydrous">Anhydrous</option>
 				</select>
 			</td>
 			

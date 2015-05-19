@@ -117,6 +117,25 @@ function generateAll() {
 }
 
 $(document).ready(function() {
+    
+    
+  
+
+    $('input[type="text"]').keydown(function (e) {
+
+        var keyCode = e.which; // Capture the event
+
+        //190 is the key code of decimal if you dont want decimals remove this condition keyCode != 190
+        if (keyCode != 8 && keyCode != 9 && keyCode != 13 && keyCode != 37 && keyCode != 38 && keyCode != 39 && keyCode != 40 && keyCode != 46 && keyCode != 110 && keyCode != 190) {
+            if (keyCode < 48) {
+                e.preventDefault();
+            } else if (keyCode > 57 && keyCode < 96) {
+                e.preventDefault();
+            } else if (keyCode > 105) {
+                e.preventDefault();
+            }
+        }
+    });
 
   
 $('#sendit').click(function() {
@@ -211,14 +230,13 @@ $(document).ready(function() {
     $('#finish').hide();
     $('#Export').click(function() {
 	  var bad = 0;
-            $('#assayFormMultiple1 :input').each(function()
+            $('#assayFormMultiple :text').each(function()
             {
                 if ($.trim(this.value) === "" || $.trim(this.value) === "NaN")
                     bad++;
             });
             if (bad > 0) {
-                $.prompt(bad + ' value(s) are missing, ensure all fields are filled and that deviations have been calculated if they\n\
-                        have not been calculated');
+                $.prompt(bad + ' value(s) are missing, ensure all fields are filled');
             }
             else {
 	
@@ -267,6 +285,9 @@ $(document).ready(function() {
                                     autoClose: true,
                                     duration: 5
                                 });
+                                
+                                   $(this).prop('value', 'Save');
+       $(this).prop('disabled', false);
                             }
 
                         });
@@ -487,6 +508,59 @@ $(document).ready(function() {
         convfactor=base/salt;
         $('#convfact').val(convfactor.toFixed(4));
     });
+    
+         $('.Wrksh').click(function () {
+            labref = $(this).attr('id');
+            $('#the_labref').val(labref);
+            $.fancybox({
+                href: "#tests"
+            })
+                    ;
+        });
+        $('#the_worksheettable  .selectbox_1').change(function(){
+            value =$(this).val();
+          
+               if(value !== ''){
+  $(this).closest('tr').find('.checkbox_1').prop('checked', $(this).val()!==""? true : false);
+      }else{
+  $(this).closest('tr').find('.checkbox_1').prop('checked', $(this).val()==""? false : true);    }
+        });
+        
+            $('#generator').click(function () {
+               
+                $("#the_worksheettable input[type=checkbox]:not(:checked)").closest("tr").remove();
+                    
+            labref = $('#the_labref').val();
+            data1 = $('#sheet_gen').serialize();
+            $.ajax({
+                type:'post',
+                url:"<?php echo base_url(); ?>assay/creatWorkbookSheets/" + labref,
+                data:data1,
+                dataType:'json',
+                success:function(){
+                   window.location.href="<?php echo base_url();?>Workbooks/"+labref+"/"+labref+".xlsx";
+                },error:function(e){
+                    console.log(e);
+                }
+            });
+            
+         
+        });
+        
+function deleteRow(tableID)  {
+        var table = document.getElementById(tableID).tBodies[0];
+        var rowCount = table.rows.length;
+
+        for(var i=1; i<rowCount; i++) {
+            var row = table.rows[i];
+            var chkbox = row.cells[8].getElementsByTagName('input')[0];
+            if(null != chkbox && true == chkbox.checked) {
+                table.deleteRow(i);
+                rowCount--;
+                i--;
+             }
+        }
+}
 
 });
 
@@ -656,11 +730,90 @@ $(document).ready(function() {
     <p><h3>&#171;<a href='<?php echo base_url() . 'analyst_controller/'; ?>'> Home</a></h3> </p>
 <center><legend>NQCL &#187; Assay Testing  &#187; Sample: <?php echo $labref; ?> </legend></center>
 
+
+<div id="tests" class="hidden2">
+    <style type="text/css">
+        .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#bbb;color:#493F3F;background-color:#9DE0AD;}
+        	#the_worksheettable{
+		width:100%; 
+		border-collapse:collapse; 
+	}
+	#the_worksheettable td{ 
+		padding:7px; border:#4e95f4 1px solid;
+	}
+	/* Define the default color for all the table rows */
+	#the_worksheettable tr{
+		background: #b8d1f3;
+	}
+	/* Define the hover highlight color for the table row */
+    #the_worksheettable tr:hover {
+          background-color: #ffff99;
+    }
+    </style>
+    <form id="sheet_gen">
+        <table class="tg" id="the_worksheettable">
+            <tr>
+                <th class="tg-031e">ID</th>
+                <th class="tg-031e">TEST NAME</th>
+                <th class="tg-031e">TEST NAME / MOLECULE</th>
+                 <th class="tg-031e">SELECTOR</th>
+            </tr>
+            <tbody>
+            <?php
+            $i = 1;
+         
+            foreach ($T as $t):
+                foreach ($mole as $cule):
+                ?>
+                <tr>
+                    <td class="tg-031e"><?php echo $i; ?></td>
+                    <td class="tg-ugh9"><?php echo $t->name; ?><input type="hidden" name="test_id[]" value="<?php echo $t->test_id;?>"/></td>
+                    <td><select name="molecule[]" id="" class="selectbox_1"> 
+                                    <option value="">-Select-</option>
+                                   <option value="Uniformity">Uniformity</option>
+                                    <option value="Relative Density">Relative Density</option>
+                                     <option value="<?php echo $cule->name;?>"><?php echo $cule->name;?></option>
+                                  
+                        </select></td>
+                    <td class="tg-031e"><input type="checkbox" value="<?php echo $t->alias; ?>"name="test_names[]" class="checkbox_1"/></td>
+                   
+                </tr>
+                <?php
+                endforeach;
+                $i++;
+            endforeach;
+            ?>
+            </tbody>
+            <tfoot>
+            <tr>
+                <input type="hidden" id="the_labref"/>
+                <td colspan="3">
+                    <input type="button" id="generator" value="Generate & Download Worksheets"/>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </form>
+</div>
+
+
+<center>
+                <div class="other_details">
+                    <legend> Assay Data Details</legend>
+                    <p>Active Ingredient Name</p>
+                    <select name="heading" id="activeIngredient" >               
+                    </select>
+                    <br>
+                    <p>
+                        <a href="#downloadWrksheets?<?php echo date('d-m-y H:i:s');?>" class="Wrksh" id="<?php echo $labref;?>">Download</a> 
+                    </p>
+                </div></center>
+
 <!--<h4>NB: If you want to use predefined weight, use this <a href='<?php echo base_url() . 'assay/assayMultiplePetition/' . $labref; ?>'> worksheet</a></h4>     -->
 <?php $attributes = array('id' => 'assayFormMultiple'); ?>
 <?php echo form_open('assay/save_assay_multiple/' . $labref, $attributes); ?>
 <!--input type="button" value="Export to excel" id="Export"/-->
-<div class="contentassay">
+<!--<div class="contentassay">
     <table style="border: 1px #000 solid;">
         <tr>
             <td><select name="labreference" id="labreference" required width="30">
@@ -686,9 +839,9 @@ $(document).ready(function() {
     <div id="conversion">
         <table class="convert">
             <tr>
-                <td>M.W Salt</td><td><input type="text" name="mwsalt" id="mwsalt" class="mwsalt"></td>
+                <td>M.W Salt</td><td><input type="text" name="mwsalt" id="mwsalt" class="mwsalt sw" ></td>
             <tr>
-                <td>M.W Base</td><td><input type="text" name="mwbase" id="mwbase" class="mwbase"></td>
+                <td>M.W Base</td><td><input type="text" name="mwbase" id="mwbase" class="mwbase sw"></td>
             </tr>
             <tr>
                 <td>Conv Fact.</td><td><input type="text" name="convfact" id="convfact" class="convfact"></td>
@@ -697,7 +850,7 @@ $(document).ready(function() {
         </table>
     </div>
     <div class="refsub1" style="position:absolute; margin-left: 1020px;">
-        <label class="rf">AREAS / ABSORBANCE</label><br>
+        <label class="rf">RESPONSE</label><br>
         <table class="tg-table-light">
             <tr>
                 <th></th>
@@ -738,13 +891,14 @@ $(document).ready(function() {
 
 
     <div class="refsub12" style="position:absolute; margin-left: 1000px; top: 500px;">
-        <label class="rf">AREAS / ABSORBANCE</label><br>
+        <label class="rf">RESPONSE</label><br>
         <table class="tg-table-light">
             <tr>
 
                 <th></th>
             </tr>
             <tr class="tg-even">
+                 <td>A &dArr;</td>
                 <td ></td>
 
             </tr>
@@ -760,6 +914,7 @@ $(document).ready(function() {
                 <td class="mgml1"><input type="text" name="smpeak[]" placeholder="965852" value="" id="smpeak3" required  class="areas" /></td>
             </tr>
             <tr>
+                 <td>B &dArr;</td>
                 <td ></td>
             </tr>
             <tr class="tg-even">
@@ -773,6 +928,7 @@ $(document).ready(function() {
                 <td class="mgml1"><input type="text" name="smpeak[]" placeholder="965852" value="" id="smpeak6" required   class="areas"/></td>
             </tr>
             <tr>
+                 <td>C &dArr;</td>
                 <td ></td>
             </tr>
             <tr class="tg-even">
@@ -788,11 +944,12 @@ $(document).ready(function() {
     </div>    
 
 
+
     <div id="assay_top">
         <center><h3>Standard </h3></center>
         <hr>
 
-        <!--    <div class="refsub">
+            <div class="refsub">
                 <label class="rf">Reference Substance</label>
                 <label>nqcl code</label><br>
                 <label class="rf"></label><span id="code" class="ref"></span><br>
@@ -802,7 +959,7 @@ $(document).ready(function() {
                 <label class="rf">Enter Quantity: </label><input type="text" name="rqty" id="rqty" class="ref"/>
                 <label class="rf">Potency: </label><input type="text" name="potency" id="potency" readonly class="ref"/>
                
-            </div>-->
+            </div>
 
 
 
@@ -855,7 +1012,7 @@ $(document).ready(function() {
                 </tr>
 
 
-                <!--======================================================-->	
+                ======================================================	
 
                 <tr>
                     <td class="workingweight" ><strong>Desired Wt. <br>(mg)</strong></td>
@@ -980,7 +1137,7 @@ $(document).ready(function() {
                 </tr>
 
 
-                <!----================================================================================================================-->
+                --================================================================================================================
 
 
                 <tr>
@@ -988,8 +1145,8 @@ $(document).ready(function() {
                 </tr>
                 <tr>
                     <td class="weight" ><strong> A &rarr;</strong></td>
-                    <td class="weight" ><input type="text" name="u_weight_c" placeholder="e.g 20mg" value="" id="number_c" required tabindex="1" /></td>
-                    <td class="weight" ><input type="text" name="u_weight" placeholder="e.g 20mg" value="" id="number" required tabindex="1" /></td>
+                    <td class="weight" ><input class="sw" type="text" name="u_weight_c" placeholder="e.g 20mg" value="" id="number_c" required tabindex="1" /></td>
+                    <td class="weight" ><input class="sw" type="text" name="u_weight" placeholder="e.g 20mg" value="" id="number" required tabindex="1" /></td>
 
                     <td class ="vf1" >
                         <input type="text" name="vf1" id="vf1" readonly class="stdclear"/>
@@ -1021,9 +1178,9 @@ $(document).ready(function() {
 
                 <tr>
                     <td class="weight" ><strong> B &rarr;</strong></td>
-                  <td class="weight" ><input type="text" name="u_weight1_c" placeholder="e.g 20mg" value="" id ="number1_c" required  tabindex="2"/></td>
+                  <td class="weight" ><input class="sw" type="text" name="u_weight1_c" placeholder="e.g 20mg" value="" id ="number1_c" required  tabindex="2"/></td>
 
-                    <td class="weight" ><input type="text" name="u_weight1" placeholder="e.g 20mg" value="" id ="number1" required  tabindex="2"/></td>
+                    <td class="weight" ><input class="sw" type="text" name="u_weight1" placeholder="e.g 20mg" value="" id ="number1" required  tabindex="2"/></td>
                     <td class ="vf111" >
                         <input type="text" required id="vf11" name="vf11" size="15" readonly class="stdclear"/> 
                     </td>
@@ -1115,7 +1272,7 @@ $(document).ready(function() {
                     <th><span class="vf3head">P3</span></th>
                     <th> <span class="vf3head">vf4</span></th>
                     <th><span>Conc.</span></th>
-<!--                            <th>LC(mg)</th>		-->
+                            <th>LC(mg)</th>		
                 </tr>
 
 
@@ -1233,15 +1390,15 @@ $(document).ready(function() {
                             <option value="1000">1000</option>
                         </select></td>
                     <td class="mgml"><input type="text" name="smgml" placeholder="0.04mg/ml" id ="smgml" value="" required  class="concetrate"/></td>
-<!--                            <td class="mgml"><input type="text" name="labelclaim" placeholder="0.04mg/ml" id ="labelclaim" value="" required  /></td>-->
+                            <td class="mgml"><input type="text" name="labelclaim" placeholder="0.04mg/ml" id ="labelclaim" value="" required  /></td>
                 </tr>
 
                 <tr>
                     <td colspan="9" class="weight" >&nbsp;</td>
                 <tr>
                     <td class="weight" ><strong> A &rarr;</strong></td>
-                    <td class="weight" ><input type="text" name="sampleA" placeholder="e.g 20mg"  id="sampleA" required /></td>
-                    <td class="weight" ><input type="text" name="aweightA" placeholder="e.g 20mg"  id ="aweightA" readonly/></td>
+                    <td class="weight" ><input class="sw" type="text" name="sampleA" placeholder="e.g 20mg"  id="sampleA" required /></td>
+                    <td class="weight" ><input  class="sw" type="text" name="aweightA" placeholder="e.g 20mg"  id ="aweightA" readonly/></td>
                     <td class ="vf111" >
                         <input type="text" required id="svf11" name="svf11" size="15" readonly/> 
                     </td>
@@ -1264,8 +1421,8 @@ $(document).ready(function() {
 
                 <tr>
                     <td class="weight" ><strong> B &rarr;</strong></td>
-                    <td class="weight" ><input type="text" name="sampleB" placeholder="e.g 20mg" value="" id="sampleB" required /></td> 
-                    <td class="weight" ><input type="text" name="aweightB" placeholder="e.g 20mg" value="" id ="aweightB" readonly /></td>
+                    <td class="weight" ><input class="sw" type="text" name="sampleB" placeholder="e.g 20mg" value="" id="sampleB" required /></td> 
+                    <td class="weight" ><input class="sw" type="text" name="aweightB" placeholder="e.g 20mg" value="" id ="aweightB" readonly /></td>
 
                     <td class ="vf111" >
 
@@ -1289,8 +1446,8 @@ $(document).ready(function() {
 
                 <tr>
                     <td class="weight" ><strong> C &rarr;</strong></td>
-                    <td class="weight" ><input type="text" name="sampleC" placeholder="e.g 20mg" value="" id="sampleC" required /></td> 
-                    <td class="weight" ><input type="text" name="aweightC" placeholder="e.g 20mg" value="" id ="aweightC" readonly/></td>
+                    <td class="weight" ><input class="sw" type="text" name="sampleC" placeholder="e.g 20mg" value="" id="sampleC" required /></td> 
+                    <td class="weight" ><input class="sw" type="text" name="aweightC" placeholder="e.g 20mg" value="" id ="aweightC" readonly/></td>
                     <td class ="vf3" >
 
                         <input type="text" required id="svf3" name="svf3" size="15" readonly/> 
@@ -1315,16 +1472,16 @@ $(document).ready(function() {
             </table>
         </div>
     </div>
-    <!--                 <div id="last_part">
+                     <div id="last_part">
                         <p><center><h2>Preparation Procedure</h1></h2></center>
                         <hr />
                         <div><center><textarea name="procedure" cols="100" rows="5" placeholder="please describe the procedure you have used"></textarea></center></div>
-                        </p>-->
+                        </p>
 </div>
 <center>
     <p class="submit">
         <input type="button" id="Export" value="Save Data & Add Active Ingredient" class=""/>
-<!--        &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" id="Export_r" value="Save & Repeat" class=""/><br />-->
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" id="Export_r" value="Save & Repeat" class=""/><br />
         <input type="button" type="submit" value="Clear Workspace But Keep Weights" id="addassaykv">
         <input type="button" type="submit" value="Clear Workspace " id="addassay">                    
         <input type="button" id="finish" value="Finish"/>
@@ -1339,7 +1496,7 @@ $(document).ready(function() {
             <br/>
             <input type="button" value="submit" id="sendit" /><input type="button" value="Close Dialog" id="closeit"/><input type="button" value="cancel" id="cancelit"/>
     </form></p>
-</div>
+</div>-->
 
 </form>
 <script type="text/javascript" src="<?php echo base_url(); ?>javascripts/assay.min_cf.js"></script>

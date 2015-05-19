@@ -2,6 +2,8 @@
     
 
     <title><?php echo $title;?></title>
+      <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />
     <script src="<?php echo base_url() . 'Scripts/jquery-1.10.2.js' ?>"></script>
     <script src="<?php echo base_url() . 'Scripts/migrate.js' ?>"></script>
     <link href="<?php echo base_url(); ?>stylesheets/jquery_notification.css" type="text/css" rel="stylesheet"/>
@@ -123,7 +125,7 @@
                                 
                                 
 
-                                    window.location.href = "<?php echo base_url() . 'directors/superdirector/'; ?>";
+                                    window.location.href = "<?php echo base_url() . 'main_dashboard/samples/'; ?>";
                                
                             });
 
@@ -179,6 +181,9 @@
             minLength: 2,
             Delay: 200
         });
+        
+
+        
     });
     </script>
     <style type="text/css">
@@ -321,7 +326,17 @@
 
 <div id="COA_AREA">
     <form action="" id="COAF" method="post">   
-        <center><div id="content">
+        <center>
+                 <table>
+                    <tr>
+                        <td></td>
+                        <td> <input type="button" value="Back" id="Back" name="genBack"/></td>                    
+                        <td>  <a href="<?php echo site_url('directors/approve_d/'.$information[0]->request_id); ?>" class="btn btn-primary">Approve</a></td>
+                        <td>  <a href="<?php echo site_url('directors/reject_d/'.$information[0]->request_id); ?>" class="btn btn-danger">Reject</a></td>
+                    </tr>
+                </table>
+            
+            <div id="content">
                 <center><p><?php echo 'CERTIFICATE OF ANALYSIS'; ?></p><br></center>
                 <center><?php echo 'CERTIFICATE No: CAN/' . date('Y') . '/' . $coa_number[0]->number; ?></center>
                 <p></p>
@@ -386,11 +401,11 @@
                 <p></p><br>
                 
                 <p></p>
-                <div id="COA_BODY">
+                <div id="COA_BODY" style="margin-top: 150px;">
                     <center> <p>
                         <strong>RESULTS</strong>
                     </p></center>
-                    <table width="490" height="278" border="1" id="temp_table">
+                    <table width="485" height="278" border="1" id="temp_table">
                         <tr align="center" valign="middle">
                             <td height="34" align="center" valign="middle" id="side"><span>TEST</span></td>
                             <td align="center" valign="middle"><span id="hes">METHOD</span></td>
@@ -519,8 +534,17 @@
                         </tr>
 <?php endforeach; ?>
                 </table>
-                <input type="button" value="Back" id="Back" name="genBack"/>
-                <input type="button" value="Save Changes and Go Approve." id="genCOA" name="genCOA"/>
+                <table>
+                    <tr>
+                        <td></td>
+                        <td> <input type="button" value="Back" id="Back" name="genBack"/></td>
+                        <td>  <input type="button" value="Save Changes" id="genCOA" name="genCOA" class="btn btn-success"/></td>
+                     <td>  <a href="<?php echo site_url('directors/approve_d/'.$information[0]->request_id); ?>" class="btn btn-primary">Approve</a></td>
+                        <td>  <a href="<?php echo site_url('directors/reject_d/'.$information[0]->request_id); ?>" class="btn btn-danger">Reject</a></td>
+                    </tr>
+                </table>
+   
+              
         </center>        
     </form>
     <br>

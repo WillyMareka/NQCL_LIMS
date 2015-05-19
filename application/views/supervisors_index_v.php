@@ -1,4 +1,4 @@
-<legend><a href="<?php echo base_url(); ?>" >Home</a> | <a href="<?php echo base_url(); ?>analyst_labreference" >Sample Worksheet Upload</a> | <a href="<?php echo base_url(); ?>sample_requests" >Done Tests </a> | <a href="<?php echo base_url(); ?>repeat_test" >Repeated Test Upload </a> </legend>
+<legend><a href="<?php echo base_url(); ?>supervisors" >Home</a> | <a href="<?php echo base_url();?>supervisors/notifications/">Notifications (<?php echo $noty;?>)</a>  </legend>
 
 <hr />
 <style type="text/css">

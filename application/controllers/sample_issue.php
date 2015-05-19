@@ -1,5 +1,6 @@
 <?php
-
+ 
+ 
 class Sample_issue extends MY_Controller{
 	function __construct(){
 		parent::__construct();
@@ -44,7 +45,9 @@ class Sample_issue extends MY_Controller{
 		//$tests_version_id = $this  -> input -> post("tests_version_id");
 		$req_version_id = $this  -> input -> post("req_version_id");
 		$version_id = $this -> input -> post("version_id");	
-			
+		
+		//Get id of user doing sample assignment
+		$assigner_id = $this->session->userdata('user_id');
 		
 		$upd_qty = $sample_qty - $samples_no; 
 		$reqid = $lab_ref_no;
@@ -60,7 +63,25 @@ class Sample_issue extends MY_Controller{
 			$mytests = $m1;
 		}
 		else{
-			$mytests = $m2;
+
+			//Make microbio tests array a key=>value array using array_combine
+			
+			//Initialize key and array to hold keys
+			$key = 'id';
+			$key_array = array();
+			
+			//Loop through microbio tests
+			for($i=0;$i<count($microbio_tests);$i++){
+				array_push($key_array, $key);
+			}
+
+			//Combine key array and value array
+			$mytests = array();
+			foreach($key_array as $i => $key){
+				$mytests[] = array($key => $microbio_tests[$i]);
+			}
+
+			//var_dump(expression)
 		}
 
 		      if (is_null($_POST)) {
@@ -100,14 +121,16 @@ class Sample_issue extends MY_Controller{
 		$sample_issue -> Samples_no = $samples_no;
 		$sample_issue -> Status_id = $status_id;
 		$sample_issue -> Analyst_id = $analyst_id;
+		$sample_issue -> Assigner_id = $assigner_id;
 		$sample_issue -> Split_status = $split_status;
 				
 		
 		$sample_issue -> save();
 		
 		} 
+                
                 $this->updateAssignedSamples();
-                $this->updateUrgency();
+                //$this->updateUrgency();
                 $sql = "UPDATE request SET sample_qty = '$upd_qty'  where request_id = '$lab_ref_no'"; 
   		mysql_query($sql);
                   $this->giveWorksheet();
@@ -134,7 +157,8 @@ class Sample_issue extends MY_Controller{
 		}
                 function updateAssignedSamples(){
                  $labref = $this -> input -> post("lab_ref_no");  
-                 $analyst_name = $this -> input -> post("analyst_name");  
+                 $analyst_name = $this -> input -> post("analyst_name"); 
+                  $to = $this -> input -> post("analyst_name"); 
                  $date=date('Y-m-d H:i:s');
                  $date_t=date('Y-m-d');
                  $dept_id = $this -> input -> post("dept_id");
@@ -147,6 +171,29 @@ class Sample_issue extends MY_Controller{
                    'department_id'=>$dept_id,
                    'analyst_id'=>$analyst_id
                  ));
+                     $user_id = $this->session->userdata('user_id');
+                     $userInfo = $this->getUsersInfo();
+                     $giver = $userInfo[0]->fname . " " . $userInfo[0]->lname;
+                     $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>$giver,
+                     'activity'=>'Issuing', 
+                     'user_id'=>$user_id,
+                     'date_issued'=>date('Y-m-d')
+                     
+                    ));
+                 
+                      $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>$analyst_name,
+                     'activity'=>'Analysis', 
+                     'user_id'=>$analyst_id,
+                     'date_issued'=>date('Y-m-d')
+                     
+                    ));
+                    $this->db->where('labref',$labref)->delete('tracking_table');
+                    $this->Issuing($labref, $to);    
+                    
                  
                 }
                 
@@ -154,7 +201,7 @@ class Sample_issue extends MY_Controller{
                    function addSignature(){                    
                     $name=  $this->getAnalyst();
                     $signature_name=$name[0]->fname." ".$name[0]->lname;
-                    $designation ='ANALYST';
+                    $designation ='ANALYST:';
                     $labref = $this -> input -> post("lab_ref_no");
                     $date_signed=date('m-d-Y');
                     
@@ -170,16 +217,17 @@ class Sample_issue extends MY_Controller{
       
         
       function addSampleTrackingInformation() {
+          $user_id = $this->session->userdata('user_id');
         $analyst = $this->getAnalyst();
         $userInfo = $this->getUsersInfo();
         $analyst_name = $analyst[0]->fname . " " . $analyst[0]->lname;
         $activity = 'Analysis';
         $labref = $this -> input -> post("lab_ref_no");  
         $names = $userInfo[0]->fname . " " . $userInfo[0]->lname;
-        $from = $names . '- Documentation';
-        $to = $analyst_name . '- Analyst';
-        $date = date('m-d-Y H:i:s');
-        $array_data = array(
+        $from = $names ;
+        $to = $analyst_name ;
+        $date = date('d-m-Y ');
+        $array_data2 = array(
             'activity' => $activity,
             'from' => $from,
             'to' => $to,
@@ -188,8 +236,11 @@ class Sample_issue extends MY_Controller{
             'current_location'=>'Analysis',
             'state'=>1
         );
+
         $this->db->where('labref', $labref);
-        $this->db->update('worksheet_tracking', $array_data);
+        $this->db->update('worksheet_tracking', $array_data2);
+
+
     }
 
     function checkSplit(){
@@ -422,7 +473,14 @@ class Sample_issue extends MY_Controller{
 		$data['wetchem'] = Tests::getWetchem();
 		$data['biological'] = Tests::getBiological();
 		$data['medevices'] = Tests::getMedevices();
+
+		//Get tests in microbiology dept that have not been assigned.
+		//$data['microbio_u'] = Tests::getMicrobioUnassigned($reqid);
 		
+		//Get all microbiology tests for this sample
+		$microbio_dept_id = 2;
+		$data['microbio'] = Tests::getTestsPerDept($reqid, $microbio_dept_id);
+
 		//If sample has entry in split table then assign 'units' to array from Split else to array from Request_details 
 		$data['units_temp'] = Split::getUnassigned($reqid);
 		
@@ -438,17 +496,38 @@ class Sample_issue extends MY_Controller{
 		$data['all_units'] = Units::getMainUnits();
 		$data['assigned_units'] = array();
 		//Get units for this lab ref number that have already been assigned.
-		$assigned_units_all	= Sample_issuance::getSplits($reqid);
-		
+		$assigned_units_all_si = Sample_issuance::getSplits($reqid);
+		$oos_status = Request::getOosStatus($reqid);
+		$oos = $oos_status[0]['oos'];
 		//Get units for this lab ref number
-		//$data['available_units'] = Request_details::getUnit2($reqid);
-
+		$assigned_units_all = Request_details::getTestSplit($reqid);
+		//$data['a'] = $assigned_units_all;
 		//Strip above array of all other elements, only include department id
-		foreach ($assigned_units_all as $key => $value) {
-		 		$data['assigned_units'][] = $assigned_units_all[0]['Department_id'];
+		/*foreach ($assigned_units_all as $key => $value) {
+		 		$data['assigned_units'][] = $value;
 		 	}
+*/
+
+		for($i=0;$i<count($assigned_units_all);$i++){
+			$data['assigned_units'][] = $assigned_units_all[$i]["Tests"][0]["Units"]["id"];
+		} 	
+
+		if($oos == 0){
+			if(!empty($assigned_units_all_si)){
+				for($i=0;$i<count($assigned_units_all_si);$i++){
+					$data['already_assigned_units'][] = $assigned_units_all_si[$i]["Department_id"];
+				}
+			}
+			else if(empty($assigned_units_all_si)){
+				$data['already_assigned_units'][] = " ";
+			}
+		}
+		else{
+			$data['already_assigned_units'][] = " ";
+		}
 		$data['assignment'] = Sample_issuance::getAssignment($reqid);
-		
+		//$data['already_assigned_units'] = Sample_issuance::getSplits($reqid);
+
 		//Get analysts previous assigned this sample
 		$assigned_analysts = Sample_issuance::getAnalystsAssignedTo($reqid);
 		
@@ -464,6 +543,7 @@ class Sample_issue extends MY_Controller{
 		else{
 				$data['analysts_assigned'][] = " ";
 		}
+		
 		
 
 		$data['analysts'] = User::getAnalystsAll();
@@ -597,7 +677,126 @@ class Sample_issue extends MY_Controller{
 	}
 	
 	
+	public function getSampleAssignments(){
+		
+		//Get request id from uri
+		$reqid = $this -> uri -> segment(3);
+
+		//Get assignment data using above protocol
+		$assignment_data = Sample_issuance::getAllAssignments($reqid);
+
+		//Loop through gotten data
+		if(!empty($assignment_data)){
+			foreach($assignment_data as $a){
+				$data[] = $a;
+			}
+			//Convert to JSON
+			echo json_encode($data);
+		}
+		else{
+			echo "[]";
+		}
+	}
+
+	public function withdrawSample(){
+		
+		//Get request id from uri
+		$reqid = $this -> uri -> segment(3);
+
+		//Get quantity of samples previously issued
+		$qty = $this -> uri -> segment(4);
+
+		//Get department analyst belongs to
+		$dept_id =  $this -> uri -> segment(5);	
+
+		//Get analyst id
+		$analyst_id = $this -> uri -> segment(6);
+
+		/*if($dept_id == 2){
+			$test_id = $this -> uri -> segment(7);
+		}
+		else{
+			$test_id = "";
+		}*/
+
+		//Get old quantity from request table
+		$o_q = Request::getQuantity($reqid);
+		$old_qty = $o_q[0]['sample_qty'];
+
+		//Add assigned quantity to existing quantity
+		$new_qty = $qty + $old_qty;
+
+		//Update quantity with new quantity
+		$update_quantity_array = array('sample_qty' => $new_qty);
+
+		$this -> db -> where(array('request_id' => $reqid));
+		$this -> db -> update('request', $update_quantity_array);
+
+		//Set withdrawal status
+		$withdrawn_status = 1;
+		/*if($dept_id == 2){
+			$withdraw_where =  array('Lab_ref_no' => $reqid, 'Department_id' => $dept_id, 'Analyst_id' => $analyst_id, 'Test_id' => $test_id);
+		}
+		else{ */
+			$withdraw_where =  array('Lab_ref_no' => $reqid, 'Department_id' => $dept_id, 'Analyst_id' => $analyst_id);
+			$withdraw_where2 = array('labref' => $reqid, 'department_id' => $dept_id, 'analyst_id' => $analyst_id);
+		//}
+
+		$update_sample_issuance = array('withdrawal_status' => $withdrawn_status);
+
+		//Update withdawal status
+		$this -> db -> where($withdraw_where);
+		//$this -> db -> update('sample_issuance', $update_sample_issuance);
+		$this -> db -> delete('sample_issuance');
+		
+		//Delete from assigned_samples
+		$this -> db -> where($withdraw_where2);
+		$this -> db -> delete('assigned_samples');
+
+		//Check if delete successful
+		$query = $this -> db -> get_where('sample_issuance', $withdraw_where);
+		$result = $query -> result_array();
+
+		if(empty($result)){
+			echo json_encode(array(
+				'status' => 'success'
+			));
+		}
+
+	}
+
+	public function testsList(){
+		//Get request id from uri
+		$reqid = $this -> uri -> segment(3);
+
+		//Get quantity of samples previously issued
+		$qty = $this -> uri -> segment(4);
+
+		//Get department analyst belongs to
+		$dept_id =  $this -> uri -> segment(5);	
+
+		//Get analyst id
+		$analyst_id = $this -> uri -> segment(6);
 	
+		//Get Test id
+		$test_id = $this -> uri -> segment(7);
+
+		//Get test data
+		$testData = Sample_issuance::getTests2($analyst_id, $dept_id, $reqid);
+
+		//Loop through gotten data
+		if(!empty($testData)){
+			foreach($testData as $t){
+				$data[] = $t;
+			}
+			//Convert to JSON
+			echo json_encode($data);
+		}
+		else{
+			echo "[]";
+		}
+
+	}
 	
 		public function assign() {
 			

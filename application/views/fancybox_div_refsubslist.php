@@ -57,19 +57,13 @@ $start = $time;
 
 	<div class = "clear">
 	<div class = "left_align">
-	<label for = "potency_db">Potency<small><i>&nbsp;(On Dried Basis)</i></small></label>
+	<label for = "potency_type">Potency Type</label>
 	</div>
 	<div class = "right_align">
-	<input name = "potency_db" required value = "<?php  echo $refsub[0]  -> potency_db ?>"/>
-	<select name ="p_db_unit" class = "p_db_unit" id = "p_db_unit<?php echo $refsub[0] -> id ?>" required >
-				  	<option value = "%">%</option>
-				  	<option value ="&#956;g/g">&#956;g/g</option>
-				  	<option value ="mg/g">mg/g</option>
-				  	<option value ="iu/mg">iu/mg</option>
-				  	<option value ="iu/mL">iu/mL</option>
-					<option value = "%:w/w">%:w/w</option>
-					<option value = "%:w/v">%:w/v</option>
-					<option value = "%:v/v">%:v/v</option>
+	<select name ="potency_type" class = "potency_type" id = "potency_type<?php echo $refsub[0] -> id ?>" required >
+			<option value = "As Such">As Such</option>
+			<option value =" On Dried Basis">On Dried Basis</option>
+			<option value ="Anhydrous">Anhydrous</option>
 		</select>
 	</div>
 	</div>
@@ -177,7 +171,7 @@ $start = $time;
 	</div>
 
 	<input type = "hidden" id ="dbpunit<?php echo $refsub[0] -> id ?>" value = "<?php echo $refsub[0] -> potency_unit ?>" />
-	<input type = "hidden" id ="dbpunit_db<?php echo $refsub[0] -> id ?>" value = "<?php echo $refsub[0] -> potency_db_unit ?>" />
+	<input type = "hidden" id ="dbpotency_type<?php echo $refsub[0] -> id ?>" value = "<?php echo $refsub[0] -> potency_type ?>" />
 	<input type = "hidden" id ="dbinitmass<?php echo $refsub[0] -> id ?>" value = "<?php echo $refsub[0] -> init_mass_unit ?>" />
 	<input type = "hidden" name = "version_id" value = "<?php echo $refsub[0] -> version_id + 1 ?>" />
 	<input type = "hidden" id ="dbapp<?php echo $refsub[0] -> id ?>" value = "<?php echo $refsub[0] -> application ?>" />
@@ -195,8 +189,8 @@ if($(this).val() == $("#dbstatus<?php echo $refsub[0] -> id ?>").val()){
 	}
 })
 
-$("#p_db_unit<?php echo $refsub[0] -> id ?> option").each(function(){
-if($(this).val() == $("#dbpunit_db<?php echo $refsub[0] -> id ?>").val()){				
+$("#potency_type<?php echo $refsub[0] -> id ?> option").each(function(){
+if($(this).val() == $("#dbpotency_type<?php echo $refsub[0] -> id ?>").val()){				
 		$(this).attr("selected", "selected");
 	}
 })

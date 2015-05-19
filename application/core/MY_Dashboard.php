@@ -28,15 +28,20 @@ class MY_Dashboard extends CI_Controller {
     }
 
     function AllSamplesCount() {
-        return $this->db->count_all_results('request');
+        return $this->db->where("DATE_FORMAT(designation_date, '%Y')=".date('Y'))->count_all_results('request');
     }
+      function AllSamplesCountJ($y) {
+          $array=array('count'=>$this->db->where("DATE_FORMAT(designation_date, '%Y')=".$y)->count_all_results('request'));
+          echo json_encode($array);
+    }
+       
 
     function AllAssignedSamples() {
-        return $this->db->where("assign_status", 1)->get('request')->num_rows();
+        return $this->db->where("activity", 'Analysis')->where("DATE_FORMAT(date_issued, '%Y')=".date('Y'))->get('sample_details')->num_rows();
     }
 
     function AllUnassignedSamples() {
-        return $this->db->where("assign_status", 0)->get('request')->num_rows();
+        return $this->AllSamplesCount() - $this->AllAssignedSamples();
     }
     
        function All_In_Use() {
@@ -82,12 +87,13 @@ class MY_Dashboard extends CI_Controller {
     }
       function Monthly_Requests_Assignment($year) {
         // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
-        $query2 = $this->db->query("SELECT MONTHNAME(designation_date) as month, YEAR(designation_date) as year,DATE_FORMAT(designation_date, '%m') as m,
+        $query2 = $this->db->query("SELECT DISTINCT(labref), MONTHNAME(date_issued) as month, YEAR(date_issued) as year,DATE_FORMAT(date_issued, '%m') as m,
                                     COUNT(id) as 'total'
-                                    FROM request
-                                    WHERE DATE_FORMAT(designation_date, '%Y') = '$year' AND assign_status = '1'
-                                    GROUP BY MONTHNAME(designation_date)
-                                    ORDER BY MONTH(designation_date) ASC");
+                                    FROM sample_details
+                                    WHERE DATE_FORMAT(date_issued, '%Y') = '$year' 
+                                    AND activity='Analysis'
+                                    GROUP BY MONTHNAME(date_issued)
+                                    ORDER BY MONTH(date_issued) ASC");
 
         return $result = $query2->result();
     }
@@ -115,41 +121,38 @@ class MY_Dashboard extends CI_Controller {
         return $result = $query2->result();
     }
             function Monthly_Requests_Review($year='2014') {
-        $query2 = $this->db->query("SELECT MONTHNAME(r.designation_date) as month, YEAR(r.designation_date) as year,DATE_FORMAT(r.designation_date, '%m') as m, COUNT(r.id) as 'total' "
-                . "FROM request r, worksheet_tracking wt "
-                . "WHERE r.request_id = wt.labref"
-                . " AND DATE_FORMAT(r.designation_date, '%Y') = '$year' "
-                . "AND wt.stage = '7'"
-                . " GROUP BY MONTHNAME(r.designation_date) "
-                . "ORDER BY MONTH(r.designation_date) "
-                . "ASC ");
+        $query2 = $this->db->query("SELECT DISTINCT(labref), MONTHNAME(date_issued) as month, YEAR(date_issued) as year,DATE_FORMAT(date_issued, '%m') as m,
+                                    COUNT(id) as 'total'
+                                    FROM sample_details
+                                    WHERE DATE_FORMAT(date_returned, '%Y') = '$year' 
+                                    AND activity='Review'
+                                    GROUP BY MONTHNAME(date_returned)
+                                    ORDER BY MONTH(date_returned) ASC ");
 
         return $result = $query2->result();
     }
     
           function Monthly_Requests_Drafting($year='2014') {
-        $query2 = $this->db->query("SELECT MONTHNAME(r.designation_date) as month, YEAR(r.designation_date) as year,DATE_FORMAT(r.designation_date, '%m') as m, COUNT(r.id) as 'total' "
-                . "FROM request r, worksheet_tracking wt "
-                . "WHERE r.request_id = wt.labref"
-                . " AND DATE_FORMAT(r.designation_date, '%Y') = '$year' "
-                . "AND wt.stage = '8'"
-                . " GROUP BY MONTHNAME(r.designation_date) "
-                . "ORDER BY MONTH(r.designation_date) "
-                . "ASC ");
+        $query2 = $this->db->query("SELECT DISTINCT(labref), MONTHNAME(date_issued) as month, YEAR(date_issued) as year,DATE_FORMAT(date_issued, '%m') as m,
+                                    COUNT(id) as 'total'
+                                    FROM sample_details
+                                    WHERE DATE_FORMAT(date_returned, '%Y') = '$year' 
+                                    AND activity='Draft COA'
+                                    GROUP BY MONTHNAME(date_returned)
+                                    ORDER BY MONTH(date_returned) ASC ");
 
         return $result = $query2->result();
     }
     
     
            function Monthly_Requests_Completed($year='2014') {
-        $query2 = $this->db->query("SELECT MONTHNAME(r.designation_date) as month, YEAR(r.designation_date) as year,DATE_FORMAT(r.designation_date, '%m') as m, COUNT(r.id) as 'total' "
-                . "FROM request r, worksheet_tracking wt "
-                . "WHERE r.request_id = wt.labref"
-                . " AND DATE_FORMAT(r.designation_date, '%Y') = '$year' "
-                . "AND wt.stage = '11'"
-                . " GROUP BY MONTHNAME(r.designation_date) "
-                . "ORDER BY MONTH(r.designation_date) "
-                . "ASC ");
+        $query2 = $this->db->query("SELECT DISTINCT(labref), MONTHNAME(date_issued) as month, YEAR(date_issued) as year,DATE_FORMAT(date_issued, '%m') as m,
+                                    COUNT(id) as 'total'
+                                    FROM sample_details
+                                    WHERE DATE_FORMAT(date_returned, '%Y') = '$year' 
+                                    AND activity='COA Approval'
+                                    GROUP BY MONTHNAME(date_returned)
+                                    ORDER BY MONTH(date_returned) ASC");
 
         return $result = $query2->result();
     }

@@ -1,5 +1,5 @@
 <?php
-//error_reporting(0);
+error_reporting(0);
 class Reviewer extends MY_Controller {
 
     function __construct() {
@@ -100,7 +100,7 @@ public function samples_for_review() {
    
     $this->db->where('reviewer_id',$reviewer_id);
  
-    $query=  $this->db->group_by('folder')->get('reviewer_worksheets');
+    $query=  $this->db->where('status','0')->group_by('folder')->get('reviewer_worksheets');
   foreach($query->result() as $folders){
       $folder[]=$folders;
   }

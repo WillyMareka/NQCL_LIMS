@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -8,7 +7,6 @@
         <link rel="stylesheet" href="<?php echo base_url(); ?>stylesheets/styleassay.css" type="text/css" media="screen"/>
         <link href="<?php echo base_url(); ?>stylesheets/jquery_notification.css" type="text/css" rel="stylesheet"/>
         <script type="text/javascript" src="<?php echo base_url(); ?>javascripts/jquery_notification_v.1.js"></script>
-
 
         <style type="text/css">
 
@@ -297,6 +295,10 @@
         <script type="text/javascript">
 
 
+
+
+
+
             $('input').live("keypress", function(e) {
                 /* ENTER PRESSED*/
                 if (e.keyCode === 13 || e.keyCode === 40) {
@@ -329,6 +331,11 @@
             }
 
             $(document).ready(function() {
+                  jQuery("#R2,#Rm").validate({
+        expression: "if (!isNaN(VAL) && VAL) return true; else return false;",
+        message: "Please enter a valid number"
+    });
+                
                      $("#mwconv").click(function() {
         if ($(this).is(":checked", true)) {
       window.location.href="<?php echo base_url().'dissolution/worksheet_c/'.$labref.'/'.$test_id.'/';?>";
@@ -765,8 +772,7 @@ success: function(data) {
                     bad++;
             });
             if (bad > 0) {
-                $.prompt(bad + ' value(s) are missing, ensure all fields are filled and that deviations have been calculated if they\n\
-                        have not been calculated');
+                $.prompt(bad + ' value(s) are missing, ensure all fields are filled!');
             }
             else {
                     // $(this).prop('disabled',true);
@@ -2163,6 +2169,8 @@ success: function(data) {
     </body>
 <!--                        <script type="text/javascript" src="<?php echo base_url(); ?>javascripts/assay.min.js"></script>-->
     <script type='text/javascript' src='<?php echo base_url(); ?>javascripts/zebra_dialog.js'></script>
+        <script type='text/javascript' src='<?php echo base_url(); ?>javascripts/jquery.validate.js'></script>
+
 
 <script type="text/javascript">
 $(document).ready(function() {

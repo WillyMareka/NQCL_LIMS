@@ -1,0 +1,81 @@
+//MOnthPicker
+	$(".monthPicker").datepicker({
+        dateFormat: 'M yy',
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: true,
+
+        onClose: function(dateText, inst) {
+            var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+            var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+            $(this).val($.datepicker.formatDate('M yy', new Date(year, month, 1)));
+        }
+    });
+
+    $(".monthPicker").focus(function () {
+        $(".ui-datepicker-calendar").hide();
+        $("#ui-datepicker-div").position({
+            my: "center top",
+            at: "center bottom",
+            of: $(this)
+        });
+    	});
+    	
+<script>
+	$(function() {
+		
+		$("#entry_form").dialog({
+			height : 300,
+			width : 500,
+			modal : true,
+			autoOpen : false
+		});
+		
+		var ref_url = $('#referring_url').val();
+		var cur_url = $('#current_url').val();
+		//var refresher = true;
+		
+		if(ref_url === "http://localhost/NQCL/request_management/add"){
+				
+			refresher = false;
+				
+			}
+			
+		else{
+			
+			refresher = true;
+		}	
+			
+		//alert(ref_url);
+			
+		$("#neworreturning").dialog({
+			resizable : false,
+			height : 140,
+			modal : true,
+			autoOpen: refresher,
+			buttons : {
+				"New" : function() {
+					$("#entry_form").dialog("open");
+					$("#clientT").change(function() {
+								var str = "";
+		
+								$("#clientT option:selected").each(function() {
+								str += $(this).val() + "";
+								});
+							$("#labref_no").text("NDQ" + str + <?php echo date('Y') ?>  + "<?php echo date('m')?>"  + <?php echo $last_req_id -> id + 1; ?>);
+							var label_contents = $("#labref_no").html();
+							$("#lab_ref_no").val(label_contents);
+	   					 }).trigger('change');		
+					}
+					
+					
+					,
+				"Returning" : function() {
+					var returning = 1;
+					$(this).dialog("close");
+				}
+			}
+		});
+	});
+
+</script>

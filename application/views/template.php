@@ -49,6 +49,8 @@ if ($access_level == "kemsa") {
         <link href="<?php echo base_url() . 'CSS/style.css' ?>" type="text/css" rel="stylesheet"/> 
         <link href="<?php echo base_url() . 'CSS/validationEngine.jquery.css' ?>" type="text/css" rel="stylesheet"/>
         <link href="<?php echo base_url() . 'bower_components/datatables-tabletools/css/dataTables.tableTools.css' ?>" type="text/css" rel="stylesheet"/>
+		<link href="<?php echo base_url() . 'bower_components/datatables-colvis/css/dataTables.colVis.css' ?>" type="text/css" rel="stylesheet"/>
+		<link href="<?php echo base_url() . 'bower_components/datatables-colvis/css/dataTables.colVis.jqueryui.css' ?>" type="text/css" rel="stylesheet"/>
         <link href="<?php echo base_url() . 'Scripts/SpryAccordion.css' ?>" type="text/css" rel="stylesheet"/>
         <link href="<?php echo base_url(); ?>Scripts/zebra-datepicker/public/css/metallic.css" rel="stylesheet" type="text/css" />
 
@@ -57,6 +59,7 @@ if ($access_level == "kemsa") {
 	    <script src="<?php echo base_url() . 'bower_components/jquery/dist/jquery.js' ?>" type="text/javascript"></script>
         <script src="<?php echo base_url() . 'bower_components/jquery-migrate/jquery-migrate.js' ?>" type="text/javascript"></script>
         <script src="<?php echo base_url() . 'bower_components/jquery-ui/jquery-ui.js' ?>" type="text/javascript"></script>
+		<script src="<?php echo base_url() . 'bower_components/datatables-colvis/js/dataTables.colVis.js' ?>" type="text/javascript"></script>
 
         <script src="<?php echo base_url() . 'Scripts/pdfobject.js' ?>" type="text/javascript"></script>
         <script src="<?php echo base_url() . 'Scripts/jquery.confirm/jquery.confirm.js' ?>" type="text/javascript"></script>
@@ -95,12 +98,14 @@ if ($access_level == "kemsa") {
         <link href="<?php echo base_url() . 'javascripts/noty/buttons.css' ?>" rel="stylesheet" type="text/css" />
 
 
-
+<!-- <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />-->
 
 
         <script src="<?php echo base_url() . 'Scripts/jquery.validationEngine.js' ?>" type="text/javascript"></script>
         <script src="<?php echo base_url() . 'Scripts/jquery.validationEngine-en.js' ?>" type="text/javascript"></script>
 
+        <script src="<?php echo base_url() . 'javascripts/jquery.editable.select.min.js' ?>" type="text/javascript"></script>
 
         
         <script src="<?php echo base_url() . 'bower_components/datatables/media/js/jquery.dataTables.js' ?>" type="text/javascript"></script>
@@ -111,6 +116,10 @@ if ($access_level == "kemsa") {
 
         <link href="<?php  echo base_url() . 'bower_components/datatables-plugins/integration/jqueryui/dataTables.jqueryui.css' ?>" type="text/css" rel="stylesheet"/> 
         <script src="<?php echo base_url() . 'bower_components/datatables-plugins/integration/jqueryui/dataTables.jqueryui.js' ?>" type="text/javascript"></script>
+
+        <script src="<?php echo base_url() . 'bower_components/datatables-colvis/js/dataTables.colVis.js' ?>" type="text/javascript"></script>
+        <link href="<?php  echo base_url() . 'bower_components/datatables-colvis/css/dataTables.colVis.css' ?>" type="text/css" rel="stylesheet"/> 
+        <link href="<?php  echo base_url() . 'bower_components/datatables-colvis/css/dataTables.colvis.jqueryui.css' ?>" type="text/css" rel="stylesheet"/> 
 
         <?php
         if (isset($script_urls)) {

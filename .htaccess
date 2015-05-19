@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /NQCL
+    RewriteBase /NQCL_LIMS
 
     #Removes access to the system folder by users.
     #Additionally this will allow you to create a System.php controller,
@@ -31,3 +31,8 @@
 
     ErrorDocument 404 /index.php
 </IfModule> 
+
+<IfModule mod_php5.c>
+php_value include_path   'SQL'
+
+</IfModule>

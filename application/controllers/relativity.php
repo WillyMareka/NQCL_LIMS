@@ -74,6 +74,11 @@ class Relativity extends MY_Controller {
             'analyst_id'=>$analyst_id
            );
            $this->db->insert('relative_density_b',$rdb);
+           $this->RegisterpRDValues($labref, $new_status);
+              $test_id=  $this->uri->segment(4);
+                $this->deletePDFgen($labref, $test_id, $analyst_id);
+       $pdf_name=$labref.'_Relative_Density';
+       $this->insertPDFgen($labref, $pdf_name, $test_id, $analyst_id);
            
            $file1 = "original_workbook/RD.xlsx";
         $file2 = "Workbooks/".$labref."/".$labref.".xlsx";
@@ -83,6 +88,8 @@ class Relativity extends MY_Controller {
         $objPHPExcel2 = PHPExcel_IOFactory::load($file1);
 
         $name = $objPHPExcel2->getSheetByName('Relative Density');
+         $active = $objPHPExcel->getActiveSheetIndex();
+        $objPHPExcel->removeSheetByIndex($active);
         $objPHPExcel->addExternalSheet($name);
         $end = $objPHPExcel->getSheetCount();
         $show_number = array();
@@ -116,16 +123,14 @@ $objPHPExcel->getActiveSheet()->setTitle('Relative density');
                 $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
                 $objWriter->save("workbooks/" . $labref . "/" . $labref . ".xlsx");
                 // $this->updateWorksheetNo();
-            //$this->upDatePosting($labref);
+           // $this->upDatePosting($labref);
             echo 'Data exported';
           //  exit();
         } else {
             echo 'Dir does not exist';
             
-        }   
-           
-           
-exit();
+        }           
+
 
         $this->updateSampleIssuance();
         $this->updateTestIssuanceStatus();
@@ -136,6 +141,91 @@ exit();
         $this->updateUploadStatus($labref, $test_id);
         //$this->updatepHCOADetails($labref);
       
+    }
+    
+    
+          
+        
+      function RegisterpRDValues($labref,$r) {
+        if (file_exists('samplepdfs/'.$labref.'_Relative_Density.pdf')) {
+           unlink('samplepdfs/'.$labref.'_Relative_Density.pdf');
+        } else {
+           // echo 'Not found';
+        }
+        
+        
+        $top= $this->getRda($labref, $r);
+        $bottom = $this->getRdb($labref, $r);
+  
+        
+
+        $full_name = 'samplepdfs/Relative_Density.pdf';     
+        $pdf = new FPDI('P', 'mm', 'A4');
+        $pdf->AliasNbPages();
+
+        $pagecount = $pdf->setSourceFile($full_name);
+
+        $i = 1;
+        do {
+            // add a page
+            $pdf->AddPage();
+            // import page
+            $tplidx = $pdf->ImportPage($i);
+
+            $pdf->useTemplate($tplidx, 10, 10, 200);
+
+            $pdf->SetFont('Arial','B');
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFontSize(8);
+            
+            $xa=1;
+            $ya1=(int)68;
+            
+             $pdf->SetXY(58, 73);
+                $pdf->Write(1, $bottom[0]->pyknometer_mass);
+            
+            for($u=0; $u<count($top);$u++){
+            
+            $pdf->SetXY(102, $ya1+=5);          
+            $pdf->MultiCell(10, 1,   $top[$u]->pyknometer_water, 0, 'R');  
+            
+               $pdf->SetXY(148, $ya1);          
+            $pdf->MultiCell(10, 1,   $top[$u]->pyknometer_sample, 0, 'R');  
+           
+            
+          }
+            $pdf->SetFont('Arial' ,'B');
+            $pdf->SetXY(102, 93);
+           // $pdf->Write(1, $uniformity[$u]->tcsv);
+            $pdf->MultiCell(10, 1,   $bottom[0]->meanofwater, 0, 'R');   
+            
+         
+              $pdf->SetFont('Arial' ,'B');
+             
+               $pdf->SetXY(148, 93);
+                $pdf->Write(1, $bottom[0]->meanofsample);
+ 
+          
+                    $pdf->SetFontSize(10);
+               $pdf->SetXY(110, 103);
+                $pdf->Write(1, $bottom[0]->massofwater);
+                
+                  $pdf->SetXY(110, 112);
+                $pdf->Write(1, $bottom[0]->massofsample);
+                
+                  $pdf->SetXY(140, 127);
+                $pdf->Write(1, $bottom[0]->relative_density);
+                
+                    $pdf->SetXY(128, 145);
+                $pdf->Write(1, $bottom[0]->relative_density);
+          
+       
+
+            $i++;
+        } while ($i <= $pagecount);
+        $pdf->Output('samplepdfs/'.$labref.'_Relative_Density.pdf', 'F');
+         
+        echo 'Done';
     }
 
     function updateTestIssuanceStatus() {

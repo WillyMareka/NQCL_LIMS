@@ -1,5 +1,5 @@
 <?php
-
+//session_start();
 
 
 //error_reporting(1);
@@ -28,9 +28,11 @@ class User_Management extends MY_Controller {
 	}
 
 	public function logout() {
+          //   unset ($_SESSION['user_username']);
                //$this->keepLogoutLog();
 		//$this -> session -> destroy();
 		$this -> session -> sess_destroy();
+               
 		$data = array();
 		$data['title'] = "System Login";
 		$data['content_view'] = "login_v";
@@ -274,6 +276,8 @@ public function submit() {
 		$email = $this -> uri -> segment(3);
 		$updated_pwd = $this -> input -> post('pwd2', TRUE);
 		$pwdarray = array('password' => md5('#*seCrEt!@-*%'.$updated_pwd), 'status' => '1');
+		echo  md5('#*seCrEt!@-*%'.$updated_pwd);
+	
 		$this -> db -> where('email', $email);
 		$this -> db -> update('users_types', $pwdarray);
 
@@ -283,6 +287,7 @@ public function submit() {
 		$uname = $this -> input -> post('username');
 		$pword = $this -> input -> post('password');
 		$utype = $this -> input -> post('usertype');
+                // $_SESSION['user_username']=$uname;
 
 		//$uname = $this -> uri -> segment(3);
 		//$pword = $this -> uri -> segment(4);
@@ -307,13 +312,17 @@ public function submit() {
 				'view' => $landing_page[0]['view']
 			));
 
-			$custom_session_data = array('username' => $userdata[0]['email'],
-			'usertype_id' => $userdata[0]['Users_types'][0]['usertype_id'],
-			'usertype_name' => $userdata[0]['Users_types'][0]['User_type'][0]['name'],
-			'user_dept'=> $userdata[0]['Departments']['Name'],
-			'user_id' =>  $userdata[0]['id'],
-			'user_views' => $userviews);
+			$custom_session_data = array(
+                        'full_name'=>$userdata[0]['fname']." ".$userdata[0]['lname'],
+                        'username' => $userdata[0]['email'],
+			            'usertype_id' => $userdata[0]['Users_types'][0]['usertype_id'],
+			            'usertype_name' => $userdata[0]['Users_types'][0]['User_type'][0]['name'],
+			            'user_dept'=> $userdata[0]['Departments']['Name'],
+			            'user_unit' => $userdata[0]['Users_types'][0]['User_type'][0]['unit'],
+			            'user_id' =>  $userdata[0]['id'],
+			            'user_views' => $userviews);
 			$this -> session -> set_userdata($custom_session_data);
+                     
 				/*if($utype == 1 ){
 					redirect('analyst_controller', 'location');
 				}

@@ -14,6 +14,7 @@ $(document).ready(function() {
            window.location.href="<?php echo base_url();?>reviewer/";
     }).fail(function(){
         alert('An error has occured when updating COA Results, Try again Later');
+           window.location.href="<?php echo base_url();?>reviewer/";
         return false;
     });
     

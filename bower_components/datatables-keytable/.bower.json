@@ -1,0 +1,23 @@
+{
+  "name": "datatables-keytable",
+  "version": "1.2.1",
+  "main": [
+    "js/dataTables.keyTable.js",
+    "css/dataTables.keyTable.css"
+  ],
+  "dependencies": {
+    "jquery": ">=1.7.0",
+    "datatables": ">=1.7.0"
+  },
+  "homepage": "https://github.com/DataTables/KeyTable",
+  "_release": "1.2.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.2.1",
+    "commit": "a1a1c86927b2cd6e496180d04463b522e412f0e6"
+  },
+  "_source": "git://github.com/DataTables/KeyTable.git",
+  "_target": "~1.2.1",
+  "_originalSource": "datatables-keytable",
+  "_direct": true
+}

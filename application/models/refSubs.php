@@ -15,8 +15,7 @@ class Refsubs extends Doctrine_Record {
 		$this -> hasColumn('date_of_restandardisation', 'date');
 		$this -> hasColumn('potency', 'decimal', 16 , array('type'=>'decimal','scale'=> 6, 'length'=> 16));
 		$this -> hasColumn('potency_unit', 'varchar', 15);
-		$this -> hasColumn('potency_db', 'decimal', 16 , array('type'=>'decimal','scale'=> 6, 'length'=> 16));
-		$this -> hasColumn('potency_db_unit', 'varchar', 15);
+		$this -> hasColumn('potency_type', 'varchar', 50);
 		$this -> hasColumn('init_mass', 'decimal', 6, array('type'=>'decimal','scale'=> 2, 'length'=> 6));
 		$this -> hasColumn('init_mass_unit', 'varchar', 15);
 		$this -> hasColumn('status', 'varchar', 30);
@@ -94,6 +93,20 @@ class Refsubs extends Doctrine_Record {
 		return $refsubdata;
 	}
 
+
+	public function getSerialNos($batch_no, $name, $source){
+		$query = Doctrine_Query::create() 
+		-> select("distinct(serial_no)")
+		-> from("refsubs")
+		-> where("name =?", $name)
+		-> andWhere("batch_no =?", $batch_no)
+		-> andWhere("source =?", $source);
+		//-> andWhere("rs_code_prefix =?", $rs_code_prefix);
+		$refsubdata = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $refsubdata;
+	}
+
+
 	public function getStandardsCount($batch_no, $rs_code_prefix){
 		$query = Doctrine_Query::create() 
 		-> select("count(distinct rs_code_prefix)")
@@ -115,7 +128,7 @@ class Refsubs extends Doctrine_Record {
 
 	public function getRefSubArray($rid){
 		$query = Doctrine_Query::create() 
-		-> select("name, rs_code, source, batch_no, potency, potency_unit, date_received, date_of_expiry, storage_conditions, water_content")
+		-> select("name, rs_code, source, batch_no, ,potency, potency_unit, potency_type, date_received, date_of_expiry, storage_conditions")
 		-> from("refsubs")
 		-> where("id =?", $rid);
 		$refsubdata = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
@@ -165,12 +178,13 @@ class Refsubs extends Doctrine_Record {
 		return $requestData;
 	}
 
-	public function getCount2($batch_no, $name) {
+	public function getCount2($batch_no, $name, $source) {
 		$query = Doctrine_Query::create() 
 			-> select('count(name)')
 			-> from("refsubs")
 			-> where('batch_no = ?', $batch_no)
-			-> andWhere('name = ?', $name);
+			-> andWhere('name = ?', $name)
+			-> andWhere('source =?', $source);
 		$requestData = $query -> execute() -> toArray();
 		return $requestData;
 	}

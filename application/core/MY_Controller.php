@@ -1,45 +1,137 @@
 <?php
 
+include APPPATH.'third_party/PDFMerger.php';
+
 class MY_Controller extends CI_Controller {
 
     public $labref;
 
     function __construct() {
         parent::__construct();
-        $this->load->library('Excel');
-    }
-    function remove_3($s){
-        return substr($s, 3);
+        $this->load->library(array('Excel', 'Log'));       
+    
     }
     
-      function readWorkbookMa($labref) {
+      function getMolecules($labref) {
+        return $this->db->where('request_id', $labref)->get('components')->result();
+    }
+    function getTracking($labref) {
+        return $this->db->where('labref',$labref)->get('sample_details')->result();
+    }
+
+    function getStandards($labref) {
+        return $this->db->query("SELECT * FROM refsubs_usage s, refsubs r WHERE s.refsubs_id = r.id AND s.request_id='$labref'")->result();
+    }
+
+    function getEquipment($labref) {
+        return $this->db->query("SELECT * FROM equipment_usage eu, equipment e WHERE eu.equipment_id = e.id AND eu.request_id='$labref' ")->result();
+    }
+
+    function getReagents($labref) {
+        return $this->db->query("SELECT * FROM reagents_usage ru, reagents r WHERE ru.reagent_id = r.id AND ru.request_id='$labref' ")->result();
+    }
+
+    function getColumnsChromaCA($labref) {
+        return $this->db->query("SELECT * FROM chromatographic_conditions cc, columns c, column_types ct WHERE cc.column_id = c.id AND ct.id = c.column_id AND cc.test_id='5' AND cc.request_id='$labref'")->result();
+    }
+    function getColumnsChromaCD($labref) {
+        return $this->db->query("SELECT * FROM chromatographic_conditions cc, columns c, column_types ct WHERE cc.column_id = c.id AND ct.id = c.column_id AND cc.test_id='2' AND cc.request_id='$labref'")->result();
+    }
+
+    function deletePDFgen($labref,$test_id,$analyst_id){
+   $this->db->where('request_id',$labref)->where('test_id',$test_id)->where('analyst_id',$analyst_id)->delete('pdf_test_generator');
+
+    }
+    
+    function insertPDFgen($labref,$pdf_name,$test_id,$analyst_id){
+        $pdf = array(
+            'request_id'=>$labref,
+            'full_name'=>$pdf_name,
+            'test_id'=>$test_id,
+            'analyst_id'=>$analyst_id
+        );
+        $this->db->insert('pdf_test_generator',$pdf);
+    }
+    
+    function samples($labref){
+        $user = $this->session->userdata('user_id');
+        return $this->db->query("SELECT a_s.*, si.samples_no as quantity_issued, p.name as sample_packaging, r.packaging 
+			FROM `assigned_samples` a_s 
+			left join sample_issuance si on a_s.labref = si.lab_ref_no
+			left join request r on a_s.labref = r.request_id
+			left join packaging p on r.packaging = p.id
+                        WHERE a_s.analyst_id ='$user'
+                        AND a_s.labref ='$labref'
+			group by a_s.labref")->result();
+    }
+    
+    function load_tests($i){
+        
+     return $this->db->query("SELECT name FROM `tests` t, request_details si WHERE si.test_id = t.id AND si.request_id ='$i'" )->result();  
+    
+    }
+    
+    function pdfMerger(){
+        return new PDFMerger();
+    }
+
+    function remove_3($s) {
+        return substr($s, 3);
+    }
+
+    function logger() {
+        $k = new Auditor();
+        $sql ="UPDATE `enqcl4`.`analysts` SET `department_id` = '5' WHERE `analysts`.`id` = 1";
+        
+        $result = $k->query($sql);
+        if ($result) {
+            echo 'Success';
+        }  else {
+            
+            echo mysql_error();
+            
+        }
+    }
+
+    function checkSampleApproval($labref) {
+        
+    }
+    
+       public function getUsersInfo() {
+        $user_id = $this->session->userdata('user_id');
+        $this->db->select('title,fname,lname');
+        $this->db->where('id', $user_id);
+        $query = $this->db->get('user');
+        return $result = $query->result();
+    }
+
+    function readWorkbookMa($labref) {
 
         $path = "analyst_uploads/" . $labref . "_micro.xlsx";
         $objPHPExcel = PHPExcel_IOFactory::load($path);
         $number = $objPHPExcel->getSheetCount();
 
 
-        for ($i = 0; $i <= $number-1 ; $i++) {
+        for ($i = 0; $i <= $number - 1; $i++) {
             $objPHPExcel->setActiveSheetIndex($i);
             $objWorksheet = $objPHPExcel->getActiveSheet();
             $sheet_name = $objWorksheet->getTitle();
-          
 
-                $assay_array = array(
-                    'test_id' => 49,
-                    'component' => $objWorksheet->getCell('B16')->getValue(),
-                    'average' => $objWorksheet->getCell('C139')->getCalculatedValue() * 100,
-                    'rsd' => $objWorksheet->getCell('C140')->getCalculatedValue() * 100,
-                    'n' => $objWorksheet->getCell('C141')->getCalculatedValue(),
-                    'labref' => $labref
-                );
 
-                $this->db->insert('component_summary', $assay_array);
-            }
+            $assay_array = array(
+                'test_id' => 49,
+                'component' => $objWorksheet->getCell('B16')->getValue(),
+                'average' => $objWorksheet->getCell('C139')->getCalculatedValue() * 100,
+                'rsd' => $objWorksheet->getCell('C140')->getCalculatedValue() * 100,
+                'n' => $objWorksheet->getCell('C141')->getCalculatedValue(),
+                'labref' => $labref
+            );
+
+            $this->db->insert('component_summary', $assay_array);
         }
-    
-    
-         function readWorkbookBe($labref) {
+    }
+
+    function readWorkbookBe($labref) {
 
         $path = "analyst_uploads/" . $labref . "_microlal.xlsx";
         $objPHPExcel = PHPExcel_IOFactory::load($path);
@@ -50,93 +142,285 @@ class MY_Controller extends CI_Controller {
             $objPHPExcel->setActiveSheetIndex($i);
             $objWorksheet = $objPHPExcel->getActiveSheet();
             $sheet_name = $objWorksheet->getTitle();
-          
+
+
+            $assay_array = array(
+                'test_id' => 50,
+                'component' => $objWorksheet->getCell('B16')->getValue(),
+                'average' => $objWorksheet->getCell('D68')->getCalculatedValue() * 100,
+                'rsd' => 'NA',
+                'n' => 'NA',
+                'labref' => $labref
+            );
+            //print_r($assay_array);
+            $this->db->insert('component_summary', $assay_array);
+        }
+    }
+    
+       function readWorkbookUpdate($labref){
+           
+        $this->db->where('labref',$labref)->delete('component_summary');
+        $rawform=  $this->justBringDosageForm($labref);
+        echo $dosageForm=$rawform[0]->dosage_form;  
+        if($dosageForm=="9" || $dosageForm=="11"|| $dosageForm=="15" ||$dosageForm=="13"){
+           
+            $this->readUWorkbook_inj($labref); 
+        }else{
+            
+            $this->readUWorkbook_noninj($labref);
+        }
+    }
+    
+    function readWorkbook($labref){
+        //$this->db->where('labref',$labref)->delete('component_summary');
+        $rawform=  $this->justBringDosageForm($labref);
+        echo $dosageForm=$rawform[0]->dosage_form;  
+        if($dosageForm=="9" || $dosageForm=="11"|| $dosageForm=="15" ||$dosageForm=="13"){
+            $this->readWorkbook_inj($labref); 
+        }else{
+            $this->readWorkbook_noninj($labref);
+        }
+    }
+
+    function readWorkbook_noninj($labref) {
+
+        $path = "analyst_uploads/" . $labref . ".xlsx";
+        $objPHPExcel = PHPExcel_IOFactory::load($path);
+        $number = $objPHPExcel->getSheetCount();
+
+
+        for ($i = 1; $i <= $number - 1; $i++) {
+            $objPHPExcel->setActiveSheetIndex($i);
+            $objWorksheet = $objPHPExcel->getActiveSheet();
+            $sheet_name = $objWorksheet->getTitle();
+            $value = $objWorksheet->getCell('D128')->getValue();
+
+            if (empty($value)) {
 
                 $assay_array = array(
-                    'test_id' => 50,
-                    'component' => $objWorksheet->getCell('B16')->getValue(),
-                    'average' => $objWorksheet->getCell('D68')->getCalculatedValue() * 100,
-                    'rsd' => 'NA',
-                    'n' => 'NA',
+                    'test_id' => 2,
+                    'component' => $this->remove_3($sheet_name),
+                    'average' => $objWorksheet->getCell('F115')->getOldCalculatedValue() * 100,
+                    'rsd' => $objWorksheet->getCell('F116')->getOldCalculatedValue() * 100,
+                    'n' => $objWorksheet->getCell('F117')->getOldCalculatedValue(),
                     'labref' => $labref
                 );
-                //print_r($assay_array);
+
+
+                $this->db->insert('component_summary', $assay_array);
+            } else {
+
+                $assay_array = array(
+                    'test_id' => 2,
+                    'component' => $this->remove_3($sheet_name),
+                    'average' => $objWorksheet->getCell('B159')->getOldCalculatedValue() * 100,
+                    'rsd' => $objWorksheet->getCell('B160')->getOldCalculatedValue() * 100,
+                    'n' => $objWorksheet->getCell('B161')->getOldCalculatedValue(),
+                    'labref' => $labref
+                );
+
                 $this->db->insert('component_summary', $assay_array);
             }
-           
-        }
-    
 
-    function readWorkbook($labref){
-      
+
+
+
+            $diss_array = array(
+                'test_id' => 5,
+                'component' => $this->remove_3($sheet_name),
+                'average' => $objWorksheet->getCell('H72')->getOldCalculatedValue() * 100,
+                'rsd' => $objWorksheet->getCell('H73')->getOldCalculatedValue() * 100,
+                'n' => $objWorksheet->getCell('H74')->getOldCalculatedValue(),
+                'labref' => $labref
+            );
+
+
+            $this->db->insert('component_summary', $diss_array);
+        }
+    }
+    
+    
+        function readWorkbook_inj($labref) {
+
         $path = "analyst_uploads/" . $labref . ".xlsx";
-        $objPHPExcel = PHPExcel_IOFactory::load($path); 
-        $number = $objPHPExcel ->getSheetCount();
-       
-      
-     for($i=1;$i<=$number-1;$i++){
-        $objPHPExcel->setActiveSheetIndex($i);
-        $objWorksheet = $objPHPExcel->getActiveSheet();
-        $sheet_name = $objWorksheet->getTitle();
-        $value =$objWorksheet->getCell('D128')->getValue();
-        
-        if(empty($value)){
-        
-        $assay_array = array(
-            'test_id' => 2,
-            'component' =>  $this->remove_3($sheet_name),
-            'average' => $objWorksheet->getCell('F112')->getOldCalculatedValue() * 100,
-            'rsd' => $objWorksheet->getCell('F113')->getOldCalculatedValue()* 100,
-            'n' => $objWorksheet->getCell('F114')->getOldCalculatedValue(),
-            'labref'=>$labref           
-        );
-     
-   
-         $this->db->insert('component_summary',$assay_array);
-        }else{
-           
-         $assay_array = array(
-            'test_id' => 2,
-            'component' =>  $this->remove_3($sheet_name),
-            'average' => $objWorksheet->getCell('B159')->getOldCalculatedValue() * 100,
-            'rsd' => $objWorksheet->getCell('B160')->getOldCalculatedValue()* 100,
-            'n' => $objWorksheet->getCell('B161')->getOldCalculatedValue(),
-            'labref'=>$labref
-            
-        );
-       
-       $this->db->insert('component_summary',$assay_array);
-        }
-        
-        
-       
-     
-       $diss_array = array(
-            'test_id' => 5,
-            'component' =>$this->remove_3($sheet_name),
-            'average' => $objWorksheet->getCell('H72')->getOldCalculatedValue()* 100,
-            'rsd' => $objWorksheet->getCell('H73')->getOldCalculatedValue()* 100,
-            'n' => $objWorksheet->getCell('H74')->getOldCalculatedValue(),
-            'labref'=>$labref
-        );
-      
-       
-   $this->db->insert('component_summary',$diss_array);
-      
-   
-     
+        $objPHPExcel = PHPExcel_IOFactory::load($path);
+        $number = $objPHPExcel->getSheetCount();
 
+
+        for ($i = 1; $i <= $number - 1; $i++) {
+            $objPHPExcel->setActiveSheetIndex($i);
+            $objWorksheet = $objPHPExcel->getActiveSheet();
+            $sheet_name = $objWorksheet->getTitle();
+            //$value = $objWorksheet->getCell('D128')->getValue();
+            
+            $diss_array = array(
+                'test_id' => 5,
+                'component' => $this->remove_3($sheet_name),
+                'average' => $objWorksheet->getCell('H71')->getOldCalculatedValue() * 100,
+                'rsd' => $objWorksheet->getCell('H72')->getOldCalculatedValue() * 100,
+                'n' => $objWorksheet->getCell('H73')->getOldCalculatedValue(),
+                'labref' => $labref
+            );
+
+
+            $this->db->insert('component_summary', $diss_array);
+        }
     }
     
+    
+    
+     function readUWorkbook_noninj($labref) {
+
+        $path = "reviewer_uploads/" . $labref . ".xlsx";
+        $objPHPExcel = PHPExcel_IOFactory::load($path);
+        $number = $objPHPExcel->getSheetCount();
+
+
+        for ($i = 1; $i <= $number - 1; $i++) {
+            $objPHPExcel->setActiveSheetIndex($i);
+            $objWorksheet = $objPHPExcel->getActiveSheet();
+            $sheet_name = $objWorksheet->getTitle();
+            $value = $objWorksheet->getCell('D128')->getValue();
+
+            if (empty($value)) {
+
+                $assay_array = array(
+                    'test_id' => 2,
+                    'component' => $this->remove_3($sheet_name),
+                    'average' => $objWorksheet->getCell('F112')->getOldCalculatedValue() * 100,
+                    'rsd' => $objWorksheet->getCell('F113')->getOldCalculatedValue() * 100,
+                    'n' => $objWorksheet->getCell('F114')->getOldCalculatedValue(),
+                    'labref' => $labref
+                );
+
+
+                $this->db->insert('component_summary', $assay_array);
+            } else {
+
+                $assay_array = array(
+                    'test_id' => 2,
+                    'component' => $this->remove_3($sheet_name),
+                    'average' => $objWorksheet->getCell('B159')->getOldCalculatedValue() * 100,
+                    'rsd' => $objWorksheet->getCell('B160')->getOldCalculatedValue() * 100,
+                    'n' => $objWorksheet->getCell('B161')->getOldCalculatedValue(),
+                    'labref' => $labref
+                );
+
+                $this->db->insert('component_summary', $assay_array);
+            }
+
+
+
+
+            $diss_array = array(
+                'test_id' => 5,
+                'component' => $this->remove_3($sheet_name),
+                'average' => $objWorksheet->getCell('H72')->getOldCalculatedValue() * 100,
+                'rsd' => $objWorksheet->getCell('H73')->getOldCalculatedValue() * 100,
+                'n' => $objWorksheet->getCell('H74')->getOldCalculatedValue(),
+                'labref' => $labref
+            );
+
+
+            $this->db->insert('component_summary', $diss_array);
+        }
     }
     
-    function copyWorkbook($labref,$heading) {
-        $id=  $this->uri->segment(4);
-         $sampleinfo = $this->loadSampleInfo($labref);
-                $standardsinfo =  $this->loadStandardsData($labref, $heading);
+    
+        function readUWorkbook_inj($labref) {
+
+        $path = "reviewer_uploads/" . $labref . ".xlsx";
+        $objPHPExcel = PHPExcel_IOFactory::load($path);
+        $number = $objPHPExcel->getSheetCount();
+
+
+        for ($i = 1; $i <= $number - 1; $i++) {
+            $objPHPExcel->setActiveSheetIndex($i);
+            $objWorksheet = $objPHPExcel->getActiveSheet();
+            $sheet_name = $objWorksheet->getTitle();
+            //$value = $objWorksheet->getCell('D128')->getValue();
+            
+            $diss_array = array(
+                'test_id' => 5,
+                'component' => $this->remove_3($sheet_name),
+                'average' => $objWorksheet->getCell('H71')->getOldCalculatedValue() * 100,
+                'rsd' => $objWorksheet->getCell('H72')->getOldCalculatedValue() * 100,
+                'n' => $objWorksheet->getCell('H73')->getOldCalculatedValue(),
+                'labref' => $labref
+            );
+
+
+            $this->db->insert('component_summary', $diss_array);
+        }
+    }
+    
+
+    function updateCOAFigures($labref) {
+        $this->db->where('labref',$labref)->delete('component_summary');
+        $path = "reviewer_uploads/" . $labref . ".xlsx";
+        $objPHPExcel = PHPExcel_IOFactory::load($path);
+        $number = $objPHPExcel->getSheetCount();
+
+
+        for ($i = 1; $i <= $number - 1; $i++) {
+            $objPHPExcel->setActiveSheetIndex($i);
+            $objWorksheet = $objPHPExcel->getActiveSheet();
+            $sheet_name = $objWorksheet->getTitle();
+            $value = $objWorksheet->getCell('D128')->getValue();
+
+            if (empty($value)) {
+
+                $assay_array = array(
+                    'test_id' => 2,
+                    'component' => $this->remove_3($sheet_name),
+                    'average' => $objWorksheet->getCell('F112')->getOldCalculatedValue() * 100,
+                    'rsd' => $objWorksheet->getCell('F113')->getOldCalculatedValue() * 100,
+                    'n' => $objWorksheet->getCell('F114')->getOldCalculatedValue(),
+                    'labref' => $labref
+                );
+
+
+                $this->db->insert('component_summary', $assay_array);
+            } else {
+
+                $assay_array = array(
+                    'test_id' => 2,
+                    'component' => $this->remove_3($sheet_name),
+                    'average' => $objWorksheet->getCell('B159')->getOldCalculatedValue() * 100,
+                    'rsd' => $objWorksheet->getCell('B160')->getOldCalculatedValue() * 100,
+                    'n' => $objWorksheet->getCell('B161')->getOldCalculatedValue(),
+                    'labref' => $labref
+                );
+
+                $this->db->insert('component_summary', $assay_array);
+            }
+
+
+
+
+            $diss_array = array(
+                'test_id' => 5,
+                'component' => $this->remove_3($sheet_name),
+                'average' => $objWorksheet->getCell('H72')->getOldCalculatedValue() * 100,
+                'rsd' => $objWorksheet->getCell('H73')->getOldCalculatedValue() * 100,
+                'n' => $objWorksheet->getCell('H74')->getOldCalculatedValue(),
+                'labref' => $labref
+            );
+
+
+            $this->db->insert('component_summary', $diss_array);
+        }
+        echo 'Update Successfull, you will be redirected shortly! ...';
+     header("Refresh: 3; URL=".  base_url()."reviewer");
+    }
+
+    function copyWorkbook($labref, $heading) {
+        $id = $this->uri->segment(4);
+        $sampleinfo = $this->loadSampleInfo($labref);
+        $standardsinfo = $this->loadStandardsData($labref, $heading);
         $file1 = "original_workbook/Template.xlsx";
-        $file2 = "Workbooks/".$labref."/".$labref.".xlsx";
-        $outputFile = "Workbooks/".$labref."/".$labref.".xlsx";
+        $file2 = "Workbooks/" . $labref . "/" . $labref . ".xlsx";
+        $outputFile = "Workbooks/" . $labref . "/" . $labref . ".xlsx";
 
         $objPHPExcel = PHPExcel_IOFactory::load($file2);
         $objPHPExcel2 = PHPExcel_IOFactory::load($file1);
@@ -152,116 +436,110 @@ class MY_Controller extends CI_Controller {
 
 
         $objPHPExcel->setActiveSheetIndex($sheet);
-         $worksheet=  $objPHPExcel->getActiveSheet()
-                                    ->setCellValue('B36', $this->input->post('workingvf1'))
-                    ->setCellValue('B37', $this->input->post('workingpipette1'))
-                    ->setCellValue('B38', $this->input->post('workingvf2'))
-                    ->setCellValue('B39', $this->input->post('workingpipette2'))
-                    ->setCellValue('B40', $this->input->post('workingvf3'))
-                    ->setCellValue('B41', $this->input->post('workingp3'))
-                    ->setCellValue('B42', $this->input->post('workingvf4'))
-                    ->setCellValue('D47', $this->input->post('workingmgml'))
-                    //->setCellValue('A35', 'Standard A')
-                    ->setCellValue('D43', $this->input->post('u_weight'))
-                    
-                    //->setCellValue('A36', 'Standard B')
-                    ->setCellValue('F43', $this->input->post('u_weight1'))
-                 
-                 
-                 ->setCellValue('B59', $this->input->post('aiweight'))
-                    ->setCellValue('B60', $this->input->post('svf1'))
-                    ->setCellValue('B61', $this->input->post('sp1'))
-                    ->setCellValue('B62', $this->input->post('svf2'))
-                    ->setCellValue('B63', $this->input->post('pipette2'))
-                    ->setCellValue('B64', $this->input->post('vf3'))
-                    ->setCellValue('B65', $this->input->post('pipette3'))
-                    ->setCellValue('D66', $this->input->post('vf41'))
-                   // ->setCellValue('D66', $this->input->post('smgml'))
-                    //->setCellValue('A35', 'Sample A')
-                    ->setCellValue('D60', $this->input->post('sampleA'))           
-                   
-                    ->setCellValue('D64', $this->input->post('sampleB'))
-                    ->setCellValue('D68', $this->input->post('sampleC'))
-                  ->setCellValue('B56', $this->input->post('labelclaim'))
-                  ->setCellValue('B55', $this->input->post('labelclaim'))
-                     ->setCellValue('C55', $this->input->post('heading'))
-                   ->setCellValue('B32', $this->input->post('mwsalt'))
-                   ->setCellValue('B31', $this->input->post('mwbase'))
-         
-                    ->setCellValue('B18', $sampleinfo[0]->product_name)
-                    ->setCellValue('B19', $sampleinfo[0]->request_id)
-                    ->setCellValue('B20', $sampleinfo[0]->active_ing)
-                    ->setCellValue('B21', $sampleinfo[0]->label_claim)
-                    ->setCellValue('B22', $sampleinfo[0]->updated_at)
-         
-                    ->setCellValue('B26', $standardsinfo[0]->name)
-                    ->setCellValue('B27', $standardsinfo[0]->rs_code)
-                    ->setCellValue('B28', $standardsinfo[0]->potency)
-                    ->setCellValue('B29', $standardsinfo[0]->water_content);
+        $worksheet = $objPHPExcel->getActiveSheet()
+                ->setCellValue('B36', $this->input->post('workingvf1'))
+                ->setCellValue('B37', $this->input->post('workingpipette1'))
+                ->setCellValue('B38', $this->input->post('workingvf2'))
+                ->setCellValue('B39', $this->input->post('workingpipette2'))
+                ->setCellValue('B40', $this->input->post('workingvf3'))
+                ->setCellValue('B41', $this->input->post('workingp3'))
+                ->setCellValue('B42', $this->input->post('workingvf4'))
+                ->setCellValue('D47', $this->input->post('workingmgml'))
+                //->setCellValue('A35', 'Standard A')
+                ->setCellValue('D43', $this->input->post('u_weight'))
+
+                //->setCellValue('A36', 'Standard B')
+                ->setCellValue('F43', $this->input->post('u_weight1'))
+                ->setCellValue('B59', $this->input->post('aiweight'))
+                ->setCellValue('B60', $this->input->post('svf1'))
+                ->setCellValue('B61', $this->input->post('sp1'))
+                ->setCellValue('B62', $this->input->post('svf2'))
+                ->setCellValue('B63', $this->input->post('pipette2'))
+                ->setCellValue('B64', $this->input->post('vf3'))
+                ->setCellValue('B65', $this->input->post('pipette3'))
+                ->setCellValue('D66', $this->input->post('vf41'))
+                // ->setCellValue('D66', $this->input->post('smgml'))
+                //->setCellValue('A35', 'Sample A')
+                ->setCellValue('D60', $this->input->post('sampleA'))
+                ->setCellValue('D64', $this->input->post('sampleB'))
+                ->setCellValue('D68', $this->input->post('sampleC'))
+                ->setCellValue('B56', $this->input->post('labelclaim'))
+                ->setCellValue('B55', $this->input->post('labelclaim'))
+                ->setCellValue('C55', $this->input->post('heading'))
+                ->setCellValue('B32', $this->input->post('mwsalt'))
+                ->setCellValue('B31', $this->input->post('mwbase'))
+                ->setCellValue('B18', $sampleinfo[0]->product_name)
+                ->setCellValue('B19', $sampleinfo[0]->request_id)
+                ->setCellValue('B20', $sampleinfo[0]->active_ing)
+                ->setCellValue('B21', $sampleinfo[0]->label_claim)
+                ->setCellValue('B22', $sampleinfo[0]->updated_at)
+                ->setCellValue('B26', $standardsinfo[0]->name)
+                ->setCellValue('B27', $standardsinfo[0]->rs_code)
+                ->setCellValue('B28', $standardsinfo[0]->potency)
+                ->setCellValue('B29', $standardsinfo[0]->water_content);
 
 
-            $speak=  $this->input->post('speak');
-                   $smpeak=  $this->input->post('smpeak');
-        
-             //standard      
-         $row = 38;
-        for($i=0;$i<3;$i++){
+        $speak = $this->input->post('speak');
+        $smpeak = $this->input->post('smpeak');
+
+        //standard      
+        $row = 38;
+        for ($i = 0; $i < 3; $i++) {
             $col = 3;
             $worksheet
                     ->setCellValueByColumnAndRow($col++, $row, $speak[$i]);
             $row++;
         }
-        
-         $row2 = 38;
-        for($i=3;$i<6;$i++){
+
+        $row2 = 38;
+        for ($i = 3; $i < 6; $i++) {
             $col = 5;
             $worksheet
                     ->setCellValueByColumnAndRow($col++, $row2, $speak[$i]);
             $row2++;
         }
-        
+
         //sample
-        
+
         $si = 60;
-        for($i=0;$i<3;$i++){
+        for ($i = 0; $i < 3; $i++) {
             $col = 5;
             $worksheet
                     ->setCellValueByColumnAndRow($col++, $si, $smpeak[$i]);
             $si++;
         }
-        
-         $s2 = 64;
-        for($i=3;$i<6;$i++){
+
+        $s2 = 64;
+        for ($i = 3; $i < 6; $i++) {
             $col = 5;
             $worksheet
                     ->setCellValueByColumnAndRow($col++, $s2, $smpeak[$i]);
             $s2++;
         }
-           $s3 = 68;
-        for($i=6;$i<9;$i++){
+        $s3 = 68;
+        for ($i = 6; $i < 9; $i++) {
             $col = 5;
             $worksheet
                     ->setCellValueByColumnAndRow($col++, $s3, $smpeak[$i]);
             $s3++;
         }
-       
-          
-                    /*$objDrawing = new PHPExcel_Worksheet_Drawing();
-      $objDrawing->setWorksheet($worksheet);
-      $objDrawing->setName("nqcl_logo");
-      $objDrawing->setDescription("Just the header image");
-      $objDrawing->setPath('worksheet_logo.png');
-      $objDrawing->setCoordinates('A1');
-      $objDrawing->setOffsetX(1);
-      $objDrawing->setOffsetY(5);    */      
-        $objPHPExcel->getActiveSheet()->setTitle('AD_'.$heading);
+
+
+        /* $objDrawing = new PHPExcel_Worksheet_Drawing();
+          $objDrawing->setWorksheet($worksheet);
+          $objDrawing->setName("nqcl_logo");
+          $objDrawing->setDescription("Just the header image");
+          $objDrawing->setPath('worksheet_logo.png');
+          $objDrawing->setCoordinates('A1');
+          $objDrawing->setOffsetX(1);
+          $objDrawing->setOffsetY(5); */
+        $objPHPExcel->getActiveSheet()->setTitle('AD_' . $heading);
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($outputFile);
-       
     }
-    
-       function upDatePostingA($labref) {
+
+    function upDatePostingA($labref) {
         $heading = $this->input->post('heading');
         $new_value = $this->checkAssayPostingStatus($labref) + 1;
         $details = array(
@@ -271,8 +549,8 @@ class MY_Controller extends CI_Controller {
         $this->db->where('component', $heading);
         $this->db->update('posting_status', $details);
     }
-    
-       function checkAssayPostingStatus($labref) {
+
+    function checkAssayPostingStatus($labref) {
         $heading = $this->input->post('heading');
 
         $query = $this->db
@@ -283,8 +561,7 @@ class MY_Controller extends CI_Controller {
         $result = $query->result();
         return $result[0]->posting_count;
     }
-    
-    
+
     function getLastWorksheet() {
         $labref = $this->uri->segment(3);
         $this->db->select('no_of_sheets');
@@ -294,15 +571,16 @@ class MY_Controller extends CI_Controller {
         // print_r($result);
     }
 
-    function loadSampleInfo($labref){
+    function loadSampleInfo($labref) {
         //global  $information ;
-        $information = $this->db->where('request_id',$labref)->get('request')->result();
-      return $information;
+        $information = $this->db->where('request_id', $labref)->get('request')->result();
+        return $information;
     }
-    
-    function loadStandardsData($labref,$component){
+
+    function loadStandardsData($labref, $component) {
         return $this->db->query("SELECT rs.name, rs.rs_code,rs.potency, rs.water_content FROM refsubs rs, refsubs_usage ru WHERE rs.id = ru.refsubs_id AND ru.request_id ='$labref' AND component='$component'")->result();
     }
+
     function sanitize_name($param) {
         $data = str_replace(array('*', '"', '/', ' ', '.', "'", "&", "`", "!", "#", "$", "^", "+", "=", "\\", ":", ";", "?", ",", "<", ">", "{", "}", "[", "]", '(', ')'), "_", $param);
         return $data;
@@ -318,32 +596,32 @@ class MY_Controller extends CI_Controller {
         echo 'The URL you entered is online.';
         return TRUE;
     }
-    function getTestID($labref){
-        return $this->db->select('test_id')->where('lab_ref_no',$labref)->group_by('test_id')->get('sample_issuance')->result();
+
+    function getTestID($labref) {
+        return $this->db->select('test_id')->where('lab_ref_no', $labref)->group_by('test_id')->get('sample_issuance')->result();
     }
-    
-    function checkDirectorsComment($labref){
-        $query= $this->db->where('labref',$labref)->get('directors_say')->num_rows();
-        if($query > 0){
+
+    function checkDirectorsComment($labref) {
+        $query = $this->db->where('labref', $labref)->get('directors_say')->num_rows();
+        if ($query > 0) {
             return '1';
-        }else{
+        } else {
             return '0';
         }
-        
     }
-    
-    
-    function getMicroNumber($labref){
-       $data= $this->db->where('labref',$labref)->get('microbiology_tracking')->result();
-       $new_number= 'BIOL/'.$data[0]->number.'/'.date('Y');
-       return $new_number;
+
+    function getMicroNumber($labref) {
+        error_reporting(0);
+        $data = $this->db->where('labref', $labref)->get('microbiology_tracking')->result();
+        $new_number = 'BIOL/' . $data[0]->number . '/' . date('Y');
+        return $new_number;
     }
-    
-      function findPriority($labref){
+
+    function findPriority($labref) {
         $this->db->select('urgency');
-        $this->db->where('request_id',$labref);
-        $query=  $this->db->get('request');
-        $result=$query->result();
+        $this->db->where('request_id', $labref);
+        $query = $this->db->get('request');
+        $result = $query->result();
         return $result;
     }
 
@@ -383,31 +661,30 @@ class MY_Controller extends CI_Controller {
                 ->num_rows();
         return $done;
     }
-    
-    function microUrl(){
-        if($this->uri->segment(4)=='formicrobiology'){
+
+    function microUrl() {
+        if ($this->uri->segment(4) == 'formicrobiology') {
             return $this->uri->segment(4);
-        }else{
-             return $this->uri->segment(3);   
+        } else {
+            return $this->uri->segment(3);
         }
     }
-    
-      function getAnalystId(){
-        $analyst_id=  $this->session->userdata('user_id');
+
+    function getAnalystId() {
+        $analyst_id = $this->session->userdata('user_id');
         $this->db->select('supervisor_id');
-        $this->db->where('analyst_id',$analyst_id);
-        $query=  $this->db->get('analyst_supervisor');
-        return $result=$query->result();
-       // print_r($result);
+        $this->db->where('analyst_id', $analyst_id);
+        $query = $this->db->get('analyst_supervisor');
+        return $result = $query->result();
+        // print_r($result);
     }
-    
-           
+
     public function getSupervisorName() {
         $supervisor_id = $this->session->userdata('user_id');
         $this->db->where('id', $supervisor_id);
         $query = $this->db->get('user');
-         return $result = $query->result();
-       // print_r($result);
+        return $result = $query->result();
+        // print_r($result);
     }
 
     public function getAnalystName() {
@@ -425,39 +702,39 @@ class MY_Controller extends CI_Controller {
     function countTestRows($labref) {
         return $this->db->where('lab_ref_no', $labref)->from('sample_issuance')->count_all_results();
     }
-    
-       function checkMicrobiologyStatus($labref,$sheet_name){
-        return $this->db->where('labref', $labref)->where('sheet_name', $sheet_name)->where('analyst_id',$this->session->userdata('user_id'))->get('custom_sheets')->num_rows();
-      
- 
-        }
-        
-        
-        function setUrlSegment(){
-          if ($this->uri->segment(3) == 'upload_microbiology') {
-           return  $labref = $this->uri->segment(4);
+     function get_user_type(){
+         $user_id = $this->session->userdata('user_id');
+         return $this->db->query(" SELECT u.email,ut.usertype_id FROM `users_types` ut, user u WHERE u.email = ut.email AND u.id ='$user_id'" )->result();
+    }
+
+    function checkMicrobiologyStatus($labref, $sheet_name) {
+        return $this->db->where('labref', $labref)->where('sheet_name', $sheet_name)->where('analyst_id', $this->session->userdata('user_id'))->get('custom_sheets')->num_rows();
+    }
+
+    function setUrlSegment() {
+        if ($this->uri->segment(3) == 'upload_microbiology') {
+            return $labref = $this->uri->segment(4);
         } else {
-          return  $labref = $this->uri->segment(3);
+            return $labref = $this->uri->segment(3);
         }
-        }
-    
- 
+    }
+
     function launchConverter($labref) {
-            $filename = $labref;
-            //file location + filename
-            $command = "pdfcreator.exe /PF";
-            $contents = file_get_contents('launcher.bat');
-            file_put_contents('launcher', $contents . "\n" . $command . $filename); 
+        $filename = $labref;
+        //file location + filename
+        $command = "pdfcreator.exe /PF";
+        $contents = file_get_contents('launcher.bat');
+        file_put_contents('launcher', $contents . "\n" . $command . $filename);
     }
 
     function updateTabsCapsCOADetails($labref) {
         $verdict = $this->input->post('tablet');
         $comment = $this->input->post('comment');
         $coa_data = array(
-            'method'=>'Weight',
+            'method' => 'Weight',
             'determined' => $comment,
-            'specification'=>'<= 2 tablets deviate by more than x% from mean weight',
-            'compedia'=>'B.P. 2012 Vol .V App XII C',
+            'specification' => '<= 2 tablets deviate by more than x% from mean weight',
+            'compedia' => 'B.P. 2012 Vol .V App XII C',
             'complies' => $verdict
         );
         $this->db
@@ -533,6 +810,20 @@ class MY_Controller extends CI_Controller {
                 'stage' => '4',
                 'current_location' => 'Supervisor'
             );
+            
+                $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>$supervisor_name,
+                     'activity'=>'Supervision', 
+                     'user_id'=>$supervisor[0]->supervisor_id,
+                     'date_issued'=>date('Y-m-d')
+                     
+                 ));
+                
+                 $this->db->where('labref', $labref);
+               $this->db->where('activity','Analysis');
+            $this->db->update('sample_details', array('date_returned'=>date('Y-m-d')));
+                
             $this->db->where('labref', $labref);
             $this->db->update('worksheet_tracking', $array_data);
         }
@@ -594,6 +885,11 @@ class MY_Controller extends CI_Controller {
                 'stage' => '6',
                 'current_location' => 'Documentation'
             );
+            
+               $this->db->where('labref', $labref);
+               $this->db->where('activity','Supervision');
+            $this->db->update('sample_details', array('date_returned'=>date('Y-m-d')));
+            
             $this->db->where('labref', $labref);
             $this->db->update('worksheet_tracking', $array_data);
         }
@@ -652,7 +948,7 @@ class MY_Controller extends CI_Controller {
 
     function getAnalyst() {
         $analyst_id = $this->session->userdata('user_id');
-        $this->db->select('fname,lname');
+        $this->db->select('title, fname,lname,id');
         $this->db->where('id', $analyst_id);
         $query = $this->db->get('user');
         return $result = $query->result();
@@ -669,7 +965,7 @@ class MY_Controller extends CI_Controller {
 
     public function getSupervisorA() {
         $user_id = $this->session->userdata('user_id');
-        $this->db->select('supervisor_name');
+        $this->db->select('supervisor_id,supervisor_name');
         $this->db->where('analyst_id', $user_id);
         $query = $this->db->get('analyst_supervisor');
         return $result = $query->result();
@@ -901,8 +1197,6 @@ class MY_Controller extends CI_Controller {
         //print_r($result);
     }
 
-
-
     public function updateWorksheetNo() {
         $labref = $this->uri->segment(3);
         $data = $this->getLastWorksheet();
@@ -1086,44 +1380,38 @@ class MY_Controller extends CI_Controller {
             echo "[]";
         }
     }
-    function Assigned(){
-       // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
-        $query2=  $this->db->query("SELECT DATE_FORMAT(designation_date, '%m') as 'month',
+
+    function Assigned() {
+        // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
+        $query2 = $this->db->query("SELECT DATE_FORMAT(designation_date, '%m') as 'month',
 COUNT(id) as 'total'
 FROM request
 WHERE assign_status=1 AND DATE_FORMAT(designation_date, '%Y') > 2010
 GROUP BY DATE_FORMAT(designation_date, '%Y%m')");
 
-      return  $result =$query2->result_array();
-    
-             
+        return $result = $query2->result_array();
     }
-    
-        function Unassigned(){
-       // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
-        $query2=  $this->db->query("SELECT DATE_FORMAT(designation_date, '%m') as 'month',
+
+    function Unassigned() {
+        // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
+        $query2 = $this->db->query("SELECT DATE_FORMAT(designation_date, '%m') as 'month',
 COUNT(id) as 'total'
 FROM request
 WHERE assign_status=0 AND DATE_FORMAT(designation_date, '%Y') > 2010
 GROUP BY DATE_FORMAT(designation_date, '%Y%m')");
 
-      return  $result =$query2->result_array();
-    
-             
+        return $result = $query2->result_array();
     }
-    
-        function All(){
-       // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
-        $query2=  $this->db->query("SELECT DATE_FORMAT(designation_date, '%m') as MONTHNAME(month),
+
+    function All() {
+        // echo $query =  $this->db->where('YEAR(designation_date)',date('Y'))->group_by('MONTH(designation_date)')->get('request')->num_rows();
+        $query2 = $this->db->query("SELECT DATE_FORMAT(designation_date, '%m') as MONTHNAME(month),
 COUNT(id) as 'total'
 FROM request
 WHERE  DATE_FORMAT(designation_date, '%Y') > 2010
 GROUP BY DATE_FORMAT(designation_date, '%Y%m')");
 
-      return  $result =$query2->result_array();
-      
-    
-             
+        return $result = $query2->result_array();
     }
 
 }

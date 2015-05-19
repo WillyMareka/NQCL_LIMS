@@ -1,5 +1,6 @@
 <head>
-
+ <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />
     <style type="text/css">
 
         #COA{

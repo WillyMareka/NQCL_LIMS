@@ -119,9 +119,9 @@ $user_type = $userarray['usertype_id'];
         <a href="<?php echo site_url("documentation/home/"); ?>" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Inventory") {
         echo "top_menu_active";
     } ?>">Done Samples</a>
-        <a href="<?php echo site_url("sample_location"); ?>" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Inventory") {
+        <a href="<?php echo site_url("custom_sheets"); ?>" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Inventory") {
         echo "top_menu_active";
-    } ?>">Sample Location</a>
+    } ?>">Custom Sheets</a>
 
 
         <a href="<?php echo site_url("client_management"); ?>" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Add User") {
@@ -130,7 +130,7 @@ $user_type = $userarray['usertype_id'];
         <a href="#worksheet_choice" id="worksheets" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Add User") {
         echo "top_menu_active";
     } ?>">Worksheet</a>
-	<a href="<?php echo site_url("main_dashboard"); ?>" id="worksheets" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Add User") {
+	<a href="<?php echo site_url("main_dashboard"); ?>" id="" class="top_menu_link sub_menu_link last_link   <?php if ($quick_link == "Add User") {
         echo "top_menu_active";
     } ?>">Dashboard</a>
 

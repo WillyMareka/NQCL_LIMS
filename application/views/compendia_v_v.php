@@ -9,7 +9,7 @@
                     <li>
                         <label>
                             <span>Compendia</span>
-                            <textarea name = "compendia[]" ></textarea>
+                            <textarea name = "compendia[]" class="comp"></textarea>
                         </label>
                     </li>
                 </fieldset>
@@ -20,7 +20,7 @@
                     <li>
                         <label>
                             <span>Specification</span>
-                            <textarea name = "specification[]" ></textarea>
+                            <textarea name = "specification[]" class="spec"></textarea>
                         </label>
                     </li>		
                 </fieldset>
@@ -54,6 +54,11 @@
         //Save
         $('#formname').submit(function(e) {
             e.preventDefault();
+            if($('.comp').val()==''){
+                alert('Compendia must be entered');
+            }else if($('.spec').val()==''){
+                  alert('Specification must be entered');
+            }else{
             $.ajax({
                 type: 'POST',
                 url: '<?php echo base_url() . "chroma_conditions/compendia_save/" ?>',
@@ -73,6 +78,7 @@
                 error: function() {
                 }
             })
+            }
         });
         
         $('#cancel').click(function(){

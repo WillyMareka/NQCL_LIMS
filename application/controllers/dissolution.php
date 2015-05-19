@@ -482,37 +482,37 @@ class Dissolution extends MY_Controller {
                     if($diss_repeat === 0){            
 
             // ->setCellValue('B36', $this->input->post('workingweight'))
-                   $worksheet ->setCellValue('B86', $this->input->post('workingvf1'))
-                    ->setCellValue('B87', $this->input->post('workingp11'))
-                    ->setCellValue('B88', $this->input->post('workingvf2'))
-                    ->setCellValue('B89', $this->input->post('workingp12'))
-                    ->setCellValue('B90', $this->input->post('workingvf3'))
-                    ->setCellValue('B91', $this->input->post('workingp13'))
-                    ->setCellValue('B92', $this->input->post('workingvf4'))
+                   $worksheet ->setCellValue('B89', $this->input->post('workingvf1'))
+                    ->setCellValue('B90', $this->input->post('workingp11'))
+                    ->setCellValue('B91', $this->input->post('workingvf2'))
+                    ->setCellValue('B92', $this->input->post('workingp12'))
+                    ->setCellValue('B93', $this->input->post('workingvf3'))
+                    ->setCellValue('B94', $this->input->post('workingp13'))
+                    ->setCellValue('B95', $this->input->post('workingvf4'))
                    // ->setCellValue('D97', $this->input->post('workingmgml'))
                     //->setCellValue('A35', 'Standard A')
-                    ->setCellValue('D93', $this->input->post('u_weightA'))
+                    ->setCellValue('D96', $this->input->post('u_weightA'))
                     
                     //->setCellValue('A36', 'Standard B')
-                    ->setCellValue('F93', $this->input->post('u_weightB'))
+                    ->setCellValue('F96', $this->input->post('u_weightB'))
                  
                  
-                 ->setCellValue('B104', $this->input->post('vu'))
-                    ->setCellValue('B105', $this->input->post('workingp1'))
-                    ->setCellValue('B106', $this->input->post('workingv'))
-                    ->setCellValue('B107', $this->input->post('workingv2'))
-                    ->setCellValue('B106', $this->input->post('workingp3'))
-                    ->setCellValue('B108', $this->input->post('workingv3'))
-                    ->setCellValue('B109', $this->input->post('workingp4'))
-                    ->setCellValue('B110', $this->input->post('workingv4'))
+                 ->setCellValue('B107', $this->input->post('vu'))
+                    ->setCellValue('B108', $this->input->post('workingp1'))
+                    ->setCellValue('B109', $this->input->post('workingv'))
+                    ->setCellValue('B110', $this->input->post('workingv2'))
+                    ->setCellValue('B111', $this->input->post('workingp3'))
+                    ->setCellValue('B112', $this->input->post('workingv3'))
+                    ->setCellValue('B113', $this->input->post('workingp4'))
+                    ->setCellValue('B114', $this->input->post('workingv4'));
 
                    
-         
-                     ->setCellValue('B18', $sampleinfo[0]->product_name)
-                    ->setCellValue('B19', $sampleinfo[0]->request_id)
-                    ->setCellValue('B20', $sampleinfo[0]->active_ing)
-                    ->setCellValue('B21', $sampleinfo[0]->label_claim)
-                    ->setCellValue('B22', $sampleinfo[0]->updated_at);
+//         
+//                     ->setCellValue('B18', $sampleinfo[0]->product_name)
+//                    ->setCellValue('B19', $sampleinfo[0]->request_id)
+//                    ->setCellValue('B20', $sampleinfo[0]->active_ing)
+//                    ->setCellValue('B21', $sampleinfo[0]->label_claim)
+//                    ->setCellValue('B22', $sampleinfo[0]->updated_at);
          
 
          
@@ -520,7 +520,7 @@ class Dissolution extends MY_Controller {
                    $area1=  $this->input->post('area1');
         
              //standard      
-         $row = 88;
+         $row = 91;
         for($i=0;$i<3;$i++){
             $col = 3;
             $worksheet
@@ -528,7 +528,7 @@ class Dissolution extends MY_Controller {
             $row++;
         }
         
-         $row2 = 88;
+         $row2 = 91;
         for($i=3;$i<6;$i++){
             $col = 5;
             $worksheet
@@ -538,7 +538,7 @@ class Dissolution extends MY_Controller {
         
         //sample
         
-        $si = 105;
+        $si = 108;
         for($i=0;$i<count($area1);$i++){
             $col = 3;
             $worksheet

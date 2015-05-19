@@ -1,5 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-
+include APPPATH . 'third_party/FPDF/fpdf17/fpdf.php';
+include APPPATH . 'third_party/FPDF/FPDI/fpdi.php';
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -14,7 +15,7 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'http://'.$_SERVER['SERVER_NAME'].'/NQCL/';
+$config['base_url']	= 'http://'.$_SERVER['SERVER_NAME'].'/NQCL_LIMS/';
 
 /*
 |--------------------------------------------------------------------------

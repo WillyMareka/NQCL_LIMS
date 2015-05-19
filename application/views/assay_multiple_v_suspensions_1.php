@@ -130,7 +130,7 @@ $('#sendit').click(function() {
         $.ajax({
             type: "POST",
             // url: "<?php echo base_url(); ?>",
-            url: "<?php echo base_url(); ?>assay/save_assay_multiple/<?php echo $labref . '/' . $test_id; ?>",
+            url: "<?php echo base_url(); ?>Assay_suspension/save_assay_multiple/<?php echo $labref . '/' . $test_id; ?>",
                             data: postData,
                             success: function() {
 
@@ -188,7 +188,7 @@ $('#closeit').click(function(){
        substance=$(this).val();
        $.ajax({
            type:"GET",
-           url:"<?php echo base_url(); ?>assay/refsubs/" + substance,
+           url:"<?php echo base_url(); ?>Assay_suspension/refsubs/" + substance,
            dataType:"json",
            success:function(data){
                $('#code').empty();
@@ -242,7 +242,7 @@ $('#closeit').click(function(){
         $.ajax({
             type: "POST",
             // url: "<?php echo base_url(); ?>",
-            url: "<?php echo base_url(); ?>assay/save_assay_multiple/<?php echo $labref . '/' . $test_id; ?>",
+            url: "<?php echo base_url(); ?>Assay_suspension/save_assay_multiple/<?php echo $labref . '/' . $test_id; ?>",
                             data: postData,
                             success: function() {
 
@@ -382,7 +382,7 @@ $('#Export_r').click(function() {
 
     $.ajax({
         type: "POST",
-        url: "<?php echo base_url(); ?>assay/save_assay_multiple/<?php echo $labref.'/'.$test_id; ?>",
+        url: "<?php echo base_url(); ?>Assay_suspension/save_assay_multiple/<?php echo $labref.'/'.$test_id; ?>",
                         data: postData,
                         success: function() {
                             loadRepeatComponents();
@@ -718,7 +718,7 @@ input.areas{
         </table>
     </div>
     <div class="refsub1" style="position:absolute; margin-left: 1050px;">
-        <label class="rf">AREAS / ABSORBANCE</label><br>
+        <label class="rf">RESPONSE</label><br>
       <table class="tg-table-light">
   <tr>
     <th></th>
@@ -759,13 +759,14 @@ input.areas{
     
     
     <div class="refsub12" style="position:absolute; margin-left: 1000px; top: 500px;">
-        <label class="rf">AREAS / ABSORBANCE</label><br>
+        <label class="rf">RESPONSE</label><br>
       <table class="tg-table-light">
   <tr>
 
     <th></th>
   </tr>
    <tr class="tg-even">
+        <td> A &dArr;</td>
     <td ></td>
 
   </tr>
@@ -781,6 +782,7 @@ input.areas{
       <td class="mgml1"><input type="text" name="smpeak[]" placeholder="965852" value="" id="smpeak3" required  class="areas" /></td>
   </tr>
   <tr>
+       <td> B &dArr;</td>
     <td ></td>
   </tr>
   <tr class="tg-even">
@@ -794,6 +796,7 @@ input.areas{
   <td class="mgml1"><input type="text" name="smpeak[]" placeholder="965852" value="" id="smpeak6" required   class="areas"/></td>
   </tr>
   <tr>
+       <td> C &dArr;</td>
   <td ></td>
   </tr>
   <tr class="tg-even">
@@ -1092,7 +1095,7 @@ input.areas{
                             <td><label>Each </label><input type="text" name="labelclaim" placeholder="0.04mg/ml" id ="labelclaim" value="" required  />  <strong><span id="unit"></span></strong></td>
                             <td>
                               Contains
-                                <input type="text" name="" value="" id="volume"/>
+                                <input type="text" name="volume" value="" id="volume"/>
                          
                                 mg <span id="component"><input type="text" id="comp" style="width: 150px;" readonly/></span>
                     </td>

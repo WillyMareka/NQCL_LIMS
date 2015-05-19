@@ -64,16 +64,16 @@ foreach($tests_issued as $tests_i){
 </td>
 
 <td>Client Address</td>
-<td><input type="text" name="client_address" id="applicant_address" value="<?php echo $client ->Address; ?>" required readonly/></td>
+<td><input type="text" name="client_address" id="applicant_address" value="<?php echo $client ->Address; ?>" required /></td>
 </tr>
 
 <tr>
 <td>Contact Name</td>
-<td><input type="text" id="contact_name" name="contact_person" value="<?php echo $client -> Contact_person; ?>" required readonly ></label>
+<td><input type="text" id="contact_name" name="contact_person" value="<?php echo $client -> Contact_person; ?>" required  ></label>
 </td>
 
 <td>Contact Telephone</td>
-<td><input type="text" name="contact_phone" id="contact_phone" value="<?php  echo $client -> Contact_phone; ?>" required readonly /></td>
+<td><input type="text" name="contact_phone" id="contact_phone" value="<?php  echo $client -> Contact_phone; ?>" required  /></td>
 </tr>
 
 
@@ -89,7 +89,7 @@ foreach($tests_issued as $tests_i){
 	<input type="hidden" id="db_clientype" value="<?php echo $client -> Client_type ?>" />
 </td>
 <td>Client Email</td>
-<td><input type="text" id="client_email" name="client_email" value="<?php echo $client -> email ?>" readonly ></td>
+<td><input type="text" id="client_email" name="client_email" value="<?php echo $client -> email ?>"  ></td>
 </tr>
 
 <td>Dosage Form</td>

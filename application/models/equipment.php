@@ -15,6 +15,7 @@ class Equipment extends Doctrine_Record {
 		$this -> hasColumn('type', 'varchar', 20);
 		$this -> hasColumn('model', 'varchar', 150);
 		$this -> hasColumn('alias', 'varchar', 50);
+		$this -> hasColumn('remarks', 'varchar', 50);
 	}//end setTableDefinition
 
 	public function setUp() {

@@ -32,6 +32,15 @@ class Request_details extends Doctrine_Record {
 		'local' => 'request_id',
 		'foreign' => 'request_id'
 		));
+
+		$this -> hasOne('Request_details',array(
+			'local' => 'request_id',
+			'foreign' => 'request_id'			
+		));
+		$this -> hasOne('Request',array(
+			'local' => 'request_id',
+			'foreign' => 'request_id'			
+		));
 	}//end setUp
 
 		
@@ -85,7 +94,7 @@ class Request_details extends Doctrine_Record {
 		-> select("test_id")
 		-> from("request_details")
 		-> where("request_id = ?", $reqid);
-		$testIdData = $query -> execute() -> toArray();
+		$testIdData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
 		return $testIdData;
 	
 	}
@@ -106,13 +115,28 @@ class Request_details extends Doctrine_Record {
 	}
 	
 	
-	public function getTestSplit($reqid){
+	/*public function getTestSplit($reqid){
 		$query = Doctrine_Query::create()
 		-> select("Department as dept")
 		-> from("tests, request_details")
 		//-> where("request_details.version_id IN (select max(request_details.version_id) from request_details where request_details.request_id = '$reqid')")
-		-> where('tests.id = request_details.test_id')
-		-> groupBy('Department');
+		-> where('tests.id = request_details.test_id');
+		//-> groupBy('Department');
+		$testData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $testData;
+	}*/
+
+
+	public function getTestSplit($reqid){
+		$query = Doctrine_Query::create()
+		-> select("r.id, t.Department, u.name")
+		-> from("request_details r")
+		-> leftJoin("r.Tests t")
+		-> leftJoin("t.Units u")
+		//-> where("request_details.version_id IN (select max(request_details.version_id) from request_details where request_details.request_id = '$reqid')")
+		-> where('t.id = r.test_id')
+		-> andWhere('r.request_id =?', $reqid)
+		-> groupBy('t.Department');
 		$testData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
 		return $testData;
 	}

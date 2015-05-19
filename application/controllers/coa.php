@@ -99,8 +99,13 @@ class Coa extends MY_Controller {
         $data['coa_details'] = $this->getAssayDissSummary($labref);
         $data['conclusion'] = $this->salvageConclusion($labref);
         $data['coa_number'] = $this->salvageCOANumbering();
-
+        $user = $this->get_user_type();
+        $type=$user[0]->usertype_id;
+            if($type=='8'){
         $this->load->view('coa_v_3_dash',$data);
+            }else{
+              $this->load->view('coa_v_3_dash_1',$data);    
+            }
     }
     function analyst_coa_view($labref) {
         // error_reporting(1);
@@ -257,9 +262,16 @@ class Coa extends MY_Controller {
     }
 
     function coaIsDraftedUpdate($labref) {
+        $user = $this->getUsersInfo();
+        $person = $user[0]->title .". ".$user[0]->fname ." ". $user[0]->lname;
+        $id= $this->session->userdata('user_id');
         $coaUpdate = array('coa_status' => '1');
         $this->db->where('labref', $labref);
         $this->db->update('reviewer_documentation', $coaUpdate);
+        
+          $this->db->where('labref', $labref);
+               $this->db->where('activity','Draft COA');
+            $this->db->update('sample_details', array('date_returned'=>date('Y-m-d'),'by'=>$person,'user_id'=>$id));
     }
 
     function getCOABody($labref) {

@@ -22,6 +22,16 @@ class Columns extends Doctrine_Record {
 			'local' => 'column_id',
 			'foreign' => 'column_id'
 		));
+		$this -> hasMany('columns_usage', array(
+			'local' => 'column_id',
+			'foreign' => 'column_id'
+		));
+		
+		$this -> hasMany('chromatographic_conditions', array(
+			'local' => 'column_id',
+			'foreign' => 'column_id'
+		));
+		
 
 	}//end setUp
 

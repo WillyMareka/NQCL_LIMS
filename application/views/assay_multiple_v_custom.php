@@ -681,7 +681,7 @@ $(document).ready(function() {
         </tr>
     </table>
     <div class="refsub1" style="position:absolute; margin-left: 1000px;">
-        <label class="rf">AREAS / ABSORBANCE</label><br>
+        <label class="rf">RESPONSE</label><br>
         <table class="tg-table-light">
             <tr>
                 <th></th>
@@ -722,13 +722,14 @@ $(document).ready(function() {
 
 
     <div class="refsub12" style="position:absolute; margin-left: 1000px; top: 500px;">
-        <label class="rf">AREAS / ABSORBANCE</label><br>
+        <label class="rf">RESPONSE</label><br>
         <table class="tg-table-light">
             <tr>
 
                 <th></th>
             </tr>
             <tr class="tg-even">
+                 <td>A &dArr;</td>
                 <td ></td>
 
             </tr>
@@ -744,6 +745,7 @@ $(document).ready(function() {
                 <td class="mgml1"><input type="text" name="smpeak[]" placeholder="965852" value="" id="smpeak3" required  class="areas" /></td>
             </tr>
             <tr>
+                 <td>B &dArr;</td>
                 <td ></td>
             </tr>
             <tr class="tg-even">
@@ -757,6 +759,7 @@ $(document).ready(function() {
                 <td class="mgml1"><input type="text" name="smpeak[]" placeholder="965852" value="" id="smpeak6" required   class="areas"/></td>
             </tr>
             <tr>
+                 <td>C &dArr;</td>
                 <td ></td>
             </tr>
             <tr class="tg-even">

@@ -1,6 +1,6 @@
 <?php
 
-class Assign_director extends CI_Controller {
+class Assign_director extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
@@ -38,7 +38,7 @@ class Assign_director extends CI_Controller {
         $this->db->insert('directors', $data);
         $this->updateAssignedSamples();
         $this->db->where('labref',$folder)->update('review_samples',array('stat'=>1)); 
-        $this->upDate();
+        //$this->upDate();
         $this->createDir();
         $this->full_copy();
         $this->addSampleTrackingInformation();
@@ -114,6 +114,7 @@ class Assign_director extends CI_Controller {
                    
                                      
      function addSampleTrackingInformation() {
+           $data1 = $this->input->post('director');
         $reviewer = $this->getDeputyDirector();
         $userInfo = $this->getUsersInfo();
         $reviewer_name = $reviewer[0]->fname . " " . $reviewer[0]->lname;
@@ -131,6 +132,16 @@ class Assign_director extends CI_Controller {
             'stage'=>'9',
             'current_location' => $reviewer_name. ' \'s Desk'
         );
+        
+         $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>$reviewer[0]->title ." ". $reviewer_name,
+                     'activity'=>'Draft COA Review', 
+                     'user_id'=>$data1,
+                     'date_issued'=>date('Y-m-d')
+                     
+                 ));
+        
         $this->db->where('labref', $labref);
         $this->db->update('worksheet_tracking', $array_data);
     }
@@ -144,18 +155,12 @@ class Assign_director extends CI_Controller {
         //print_r($result);
     }
 
-    public function getUsersInfo() {
-        $user_id = $this->session->userdata('user_id');
-        $this->db->select('fname,lname');
-        $this->db->where('id', $user_id);
-        $query = $this->db->get('user');
-        return $result = $query->result();
-    }
+
                    
                    
                   function getDeputyDirector(){
                   $analyst_id = $this->input->post('director');
-                  $this->db->select('fname,lname');
+                  $this->db->select('title,fname,lname');
                   $this->db->where('id',$analyst_id);
                   $query=  $this->db->get('user');
                   return $result=$query->result();

@@ -11,6 +11,12 @@ class Columns_usage extends Doctrine_Record {
 
 	public function setUp() {
 		$this -> setTableName('columns_usage');
+		
+		$this -> hasOne('columns', array(
+			'local' => 'column_id',
+			'foreign' => 'id'
+		));
+		
 	}//end setUp
 
 	public function getAll() {
@@ -19,6 +25,17 @@ class Columns_usage extends Doctrine_Record {
 		return $equipmentData;
 	}//end getAll
 
+	public function getColumnNumber($r, $t){
+		$query =  Doctrine_Query::create()
+		-> select("cu.id, cu.column_id, cs.column_no")
+		-> from("columns_usage cu")
+		-> leftJoin("cu.columns cs")
+		-> where("cu.request_id =?", $r)
+		-> andWhere("cu.test_id =?", $t);
+		$cdata = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $cdata;
+	}	
+	
 }//end class
 
 ?>

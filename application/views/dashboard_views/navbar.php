@@ -286,7 +286,7 @@ if($user_id ==''){
                             <li><a href="#"><i class="icon-user"></i> Profile</a></li>
                             <li><a href="#"><i class="icon-cog"></i> Settings</a></li>
                             <li><a href="#"><i class="icon-envelope"></i> Messages</a></li>
-                            <li><a href="login.html"><i class="icon-off"></i> Logout</a></li>
+                            <li><a href="<?php echo base_url();?>user_management/logout/"><i class="icon-off"></i> Logout</a></li>
                         </ul>
                     </li>
                     <!-- end: User Dropdown -->

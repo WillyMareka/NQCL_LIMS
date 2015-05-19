@@ -30,6 +30,12 @@ class Sample_issuance extends Doctrine_Record {
 		$this -> hasColumn('system_status', 'int', 11);
 		$this -> hasColumn('multicomponent_status','int', 11);
 		$this -> hasColumn('archive_status','int', 11);
+		$this -> hasColumn('withdrawal_status','int', 11);
+		$this -> hasColumn('download_status','int', 11);
+		$this -> hasColumn('completion','int', 11);
+		$this -> hasColumn('withdrawal_reason_id','int', 11);
+		$this -> hasColumn('withdrawal_comment','varchar', 100);
+		$this -> hasColumn('Assigner_id','int', 11);
 	}
 	
 	public function setUp(){
@@ -96,6 +102,21 @@ class Sample_issuance extends Doctrine_Record {
 		$IssuedData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
 		return $IssuedData;
 	}
+
+	public function getAllAssignments($reqid){
+		$query = Doctrine_Query::create()
+		-> select('s.Samples_no as quantity, p.name as packaging, s.Department_id,s.Test_id, s.Analyst_id, s.created_at, d.name as department, u.fname as fname, u.lname as lname, t.name as test')
+		-> from('Sample_issuance s')
+		-> leftJoin('s.Units d')
+		-> leftJoin('s.User u')
+		-> leftJoin('s.Tests t')	
+		-> leftJoin('s.Request r')
+		-> leftJoin('r.Packaging p')
+		-> where('s.Lab_ref_no = ?', $reqid)
+		-> groupBy('s.analyst_id');
+		$IssuedData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $IssuedData;
+	}
 	
 
 	public function getIssuance($reqid){
@@ -107,19 +128,43 @@ class Sample_issuance extends Doctrine_Record {
 		return $IssuedData;
 	}
 	
+
+	public function getDescriptionStatus($lab_ref_no){
+		$query = Doctrine_Query::create()
+		-> select('count(*)')
+		-> from('sample_issuance')
+		-> where('lab_ref_no = ?', $lab_ref_no)
+		-> andWhere('desc_status =?', 1);
+		$desc_data = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $desc_data;
+	}
 	
 	public function getTests($user_id) {
 		
 		$query = Doctrine_Query::create()
 		-> select('*') 
 		-> from('sample_issuance s')
-		-> where('s.analyst_id = ?', $user_id);
+		-> where('s.analyst_id = ?', $user_id)
+			-> andWhere('s.completion = ?', '0')
+		-> andWhere('s.archive_status =?', 0);
 		//-> andWhere('s.withdrawal_status = ?', null)
 		//-> andWhere("version_id IN (select max(version_id) from sample_issuance group by lab_ref_no)");
 		//-> andwhere('t.id = s.test_id');
 		$testData = $query -> execute();
 		return $testData;
 		
+	}
+
+	public function getTests2($user_id, $dept_id, $reqid){
+		$query = Doctrine_Query::create()
+		-> select('s.id, t.name as test_name, t.id as test_id') 
+		-> from('sample_issuance s')
+		-> leftJoin('s.Tests t')
+		-> where('s.analyst_id = ?', $user_id)
+		-> andWhere('s.Department_id =?', $dept_id)
+		-> andWhere('s.Lab_ref_no =?', $reqid);
+		$testData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $testData;
 	}
 	
 	public function getStatus($lab_ref_no, $test_id){
@@ -186,7 +231,21 @@ class Sample_issuance extends Doctrine_Record {
 		return $listingData;
 		
 	}
+
 	
+	public static function getSplits($reqid) {
+		
+		$query = Doctrine_Query::create()
+		->select('Department_id')
+		->from('Sample_issuance')
+		->where('lab_ref_no = ?', $reqid)
+		->andWhere('Department_id <> 2')
+		->groupBy('Department_id');		
+		$splitData = $query -> execute()->toArray();
+		return $splitData;
+	}
+	
+		
 	     	public function getCompendiaStatus($lab_ref_no, $test_id){
 		$query = Doctrine_Query::create()
 
@@ -197,18 +256,6 @@ class Sample_issuance extends Doctrine_Record {
 		
 		$statusData = $query -> execute();
 		return $statusData[0]['compendia_status'];
-	}
-
-	
-	public static function getSplits($reqid) {
-		
-		$query = Doctrine_Query::create()
-		->select('Department_id')
-		->from('Sample_issuance')
-		->where('lab_ref_no = ?', $reqid)
-		->groupBy('Department_id');		
-		$splitData = $query -> execute()->toArray();
-		return $splitData;
 	}
 
 

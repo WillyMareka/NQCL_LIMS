@@ -30,23 +30,22 @@
 	<tr class = "<?php if($key2%2){ echo "zebra_striping";} ?> centered">
 		<td><?php echo $v["LABORATORY_REF_NO"] ; ?></td>
 		<td><?php echo $v["PRODUCT"]; ?></td>
-		<td><?php echo $v["BATCH_NO"]; ?></td>
-		<td><?php foreach($v["Request_details"]["Tests"] as $t) {
-			 //echo json_encode($t);
+		<td><?php var_dump(count($v["Request_details"])); ?></td>
+		<td><?php foreach($v["Request_details"] as $t) {
 				if($key1%2){
-						if($key1 != count($v["Request_details"]["Tests"])){
+						if($key1 != count($v["Request_details"])){
 							$append = ", ";
 						}
 						else{
 							$append = "";
 						}
-					echo $t["Name"].$append;
+					echo $t["Tests"][0]["Name"].$append;
 				}
 				else{
-					echo $t["Name"]. "<br/>";
+					echo $t["Tests"][0]["Name"]. "<br/>";
 				}
 				$key1++;
-		} ?>
+		 }  ?>
 		</td>
 		<td><?php echo $v["Dispatch_register"]["amount"] + $v["Dispatch_register"]["discount"];  ?></td>
 		<td><?php echo (0.8 * ($v["Dispatch_register"]["amount"] + $v["Dispatch_register"]["discount"])); ?></td>

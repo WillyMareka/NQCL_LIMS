@@ -19,6 +19,10 @@ class Documentation extends MY_Controller {
         $data['documentation_data'] = $this->getReviewedData();
         $this->base_params($data);
     }
+    function finish($labref){
+        $this->db->where('labref',$labref)->update('reviewer_documentation',array('status'=>'1'));
+        redirect('documentation/reviewed/');
+    }
 
     function rejectedAnalysedSamples() {
         $data['settings_view'] = 'documents_r';
@@ -50,15 +54,16 @@ class Documentation extends MY_Controller {
     }
 
     public function getData() {
-        $query =  $this->db->query("SELECT DISTINCT * "
-                . "FROM supervisor_approvals "
-                . "WHERE department = 1 "
-                . "AND assign_status='0' "
-                . "GROUP BY department "
-                . "UNION ALL SELECT * "
-                . "FROM supervisor_approvals "
-                . "WHERE department = 0 "
-                . "AND assign_status='0' ");
+        $query =  $this->db->query("SELECT DISTINCT *
+                FROM supervisor_approvals 
+                WHERE department = 0
+                AND assign_status='0' 
+                GROUP BY department,labref 
+                UNION ALL SELECT * 
+                FROM supervisor_approvals 
+                WHERE department = 1
+                AND assign_status='0' 
+                ORDER BY department DESC");
       //  $user_id = $this->session->userdata('user_id');     
         //$this->db->where('assign_status', 0);
        // $query = $this->db->get('supervisor_approvals');
@@ -67,7 +72,7 @@ class Documentation extends MY_Controller {
     }
 
     public function getReviewedData() {
-        $query = $this->db->order_by('id', 'DESC')->group_by('labref')->get('reviewer_documentation');
+        $query = $this->db->where('status','0')->order_by('id', 'DESC')->group_by('labref')->get('reviewer_documentation');
         return $result = $query->result();
         //print_r($result);
     }

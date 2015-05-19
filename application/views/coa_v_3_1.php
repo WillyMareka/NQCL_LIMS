@@ -1,5 +1,6 @@
 <head> 
-    
+     <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="<?php echo  base_url();?>dashboard_assets/css/bootstrap-responsive.min.css" rel="stylesheet" />
 
     <title><?php echo $title;?></title>
     <script src="<?php echo base_url() . 'Scripts/jquery-1.10.2.js' ?>"></script>
@@ -123,7 +124,7 @@
                                 
                                 
 
-                                    window.location.href = "<?php echo base_url() . 'directors/superdirector/'; ?>";
+                                    window.location.href = "<?php echo base_url() . 'documentation/fromDirector/'; ?>";
                                
                             });
 
@@ -187,7 +188,7 @@
             height:40px;
         }
         #COA_BODY{
-            margin-top: 120px;
+            margin-top: 200px;
         }
         #COA{
             padding-right:25px;

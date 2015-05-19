@@ -60,19 +60,85 @@ class Friability extends MY_Controller {
             'repeat_status' => $new_status
         );
         $this->db->insert('friability', $friability);
-
-
+       
+        $this->RegisterFriabilityValues($labref, $new_status);
+             $test_id=  $this->uri->segment(4);
+                $this->deletePDFgen($labref, $test_id, $analyst_id);
+       $pdf_name=$labref.'_friability';
+       $this->insertPDFgen($labref, $pdf_name, $test_id, $analyst_id);
         $this->updateSampleIssuance();
         $this->updateTestIssuanceStatus();
         $this->updateSampleSummary();
         $this->post_posting();
         $this->save_test();
-         $test_id=  $this->uri->segment(4);
+        // $test_id=  $this->uri->segment(4);
         $this->updateUploadStatus($labref, $test_id);
        // $this->updateTabsCapsCOADetails($labref);
         //$sql1 = "UPDATE worksheets SET comment='$comment' WHERE labref='$labref'";
         //$j = mysql_query($sql1);
         //redirect('assay/assay_page/' . $labref);
+    }
+    
+       function RegisterFriabilityValues($labref,$r) {
+        if (file_exists('samplepdfs/'.$labref.'_friability.pdf')) {
+           unlink('samplepdfs/'.$labref.'_friability.pdf');
+        } else {
+           // echo 'Not found';
+        }
+        $top = $this->getFriabilityData($labref, $r);
+       
+         
+        
+
+        $full_name = 'samplepdfs/friability.pdf';     
+        $pdf = new FPDI('P', 'mm', 'A4');
+        $pdf->AliasNbPages();
+
+        $pagecount = $pdf->setSourceFile($full_name);
+
+        $i = 1;
+        do {
+            // add a page
+            $pdf->AddPage();
+            // import page
+            $tplidx = $pdf->ImportPage($i);
+
+            $pdf->useTemplate($tplidx, 10, 10, 200);
+
+            $pdf->SetFont('Arial','B');
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFontSize(10);      
+            
+         
+          
+            $pdf->SetXY(132, 67);           
+            $pdf->MultiCell(15, 1,   $top[0]->tw_before_test, 0, 'R');   
+            
+         
+          
+         
+               $pdf->SetXY(132, 77);             
+                 $pdf->MultiCell(15, 1,   $top[0]->tw_after_test, 0, 'R'); 
+          
+               $pdf->SetXY(132, 87);
+                  $pdf->MultiCell(15, 1,   $top[0]->loss. "g", 0, 'R'); 
+                
+               
+               $pdf->SetXY(150, 112);
+                $pdf->Write(1, $top[0]->percentage_loss );
+          
+
+            $pdf->SetXY(62, 130);
+            $pdf->Write(1, $top[0]->comments);   
+          
+          
+       
+
+            $i++;
+        } while ($i <= $pagecount);
+        $pdf->Output('samplepdfs/'.$labref.'_friability.pdf', 'F');
+         
+        echo 'Done';
     }
 
     function updateTestIssuanceStatus() {

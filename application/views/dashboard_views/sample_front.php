@@ -1,14 +1,23 @@
 <script src="<?php echo base_url(); ?>dashboard_assets/js/jquery-1.10.2.min.js"></script>
+<script src="<?php echo base_url(); ?>javascripts/moments.js"></script>
+
 <script src='<?php echo  base_url();?>dashboard_assets/js/jquery.dataTables.min.js'></script>
  <script type="text/javascript" src="<?php echo base_url(); ?>scripts/fancybox/source/jquery.fancybox.pack.js"></script>
         <script type="text/javascript" src="<?php echo base_url(); ?>scripts/fancybox/source/jquery.fancybox.js"></script>
         <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>scripts/fancybox/source/jquery.fancybox.css" media="screen" />
-
+        <style>
+           table {border-collapse:collapse;border-spacing:0;border-color:#bbb;}
+table td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#bbb;color:#594F4F;background-color:#E0FFEB;}
+table th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#bbb;color:#493F3F;background-color:#9DE0AD;}
+table td{background-color:#C2FFD6}
+.date_diff{color:springgreen};
+        </style>
 <script language="JavaScript">
 
     function loadtable(month,name){
      // $('.datatable').dataTable().fnDestroy();  
-     url = "";
+     
+     arl = "";
      active_tab =$("#tabs > ul>.ui-tabs-active").attr('aria-controls');
      active_name =$("#tabs > ul>.ui-tabs-active").text();
        year = $('.changeData').val();
@@ -35,25 +44,101 @@
     }else if(active_tab ==='tabs-5'){
          $('#qTitle').text('NQCL ' + active_name + ' SAMPLES');
           $('#qDate').text(name + ' ' +year);
-         url= "<?php echo site_url('main_dashboard/getMontylyRDCSamples/8') ?>/"+month; 
+         url= "<?php echo site_url('main_dashboard/getMontylyDraftCSamples/8') ?>/"+month; 
     }else if(active_tab ==='tabs-6'){
          $('#qTitle').text('NQCL ' + active_name + ' SAMPLES');
           $('#qDate').text(name + ' ' +year);
-       url= "<?php echo site_url('main_dashboard/getMontylyRDCSamples/11') ?>/"+month; 
+       url= "<?php echo site_url('main_dashboard/getMontylyDraftCompletedSamples/11') ?>/"+month; 
     }
      
-     
-  $('#example1').dataTable({
+          if(active_tab ==='tabs-2'){
+              $table1= $('#example3').dataTable({     
+      
+                "sPagination": "full_numbers",
+                "bJQueryUI": true,
+                "aoColumnsDefs": [
+           { "sClass": "date_diff", "aTargets": [5] }
+           ],
+                "aoColumns": [
+                    {"sTitle": "Request ID", "mData": "labref"},
+                    {"sTitle": "Client Name", "mData": "name"},
+                    {"sTitle": "Product Name.", "mData": "product_name"},
+                    {"sTitle": "Date Received.", "mData": "designation_date"},   
+                    {"sTitle": "Analyst Name", "mData": "by"}, 
+                     {"sTitle": "How long", "mData": "date_issued",
+                        "mRender": function(data, type, full) {        
+
+                       var start = moment(full.date_returned);
+                      var end = moment(full.date_issued);
+                   
+                            return start.diff(end,'days') +' Days';
+                        }
+                    },
+                    {"sTitle": "More Info", "mData": "labref",
+                        "mRender": function(data, type, full) {
+                            return '<button class="show-data btn btn-small btn-primary" id = ' + data + ' >View</button>';
+                        }
+                    },
+                ],
+                "bDeferRender": true,
+                "bProcessing": true,
+                "bDestroy": true,
+                "bLengthChange": true,
+                "iDisplayLength": 10,
+                "sAjaxDataProp": "",
+                "sAjaxSource": url,
+                "aaSorting": [[3, "asc"]]
+            });
+
+            
+            $('#example3').css('width','100%');
+            
+                     $.fancybox({
+                href:"#drill-down3"
+            })   
+            
+         $('.show-data').live('click',function(){
+  
+      
+           var nTr = this.parentNode.parentNode;
+
+                if ($(this).text() == 'view') {
+
+                    $(this).text("close");
+
+                    //alert("Under Construction");
+
+                    var id = $(this).attr("id");
+                    //console.log(id);
+
+                    $.post("<?php echo site_url('main_dashboard/more_view_samples'); ?>" + "/" + id , function(more) {
+
+                        $table1.fnOpen(nTr, more, 'more');
+                    })
+
+                }
+
+                else {
+
+                    $table1.fnClose(nTr);
+                    $(this).text("view");
+                }
+        });
+              
+    }else{
+      
+             $table= $('#example1').dataTable({
+      
+      
                 "sPagination": "full_numbers",
                 "bJQueryUI": true,
                 "aoColumns": [
                     {"sTitle": "Request ID", "mData": "request_id"},
+                    {"sTitle": "Client Name", "mData": "name"},
                     {"sTitle": "Product Name.", "mData": "product_name"},
-                    {"sTitle": "Manufacturer", "mData": "manufacturer_name"},
-                    //{"sTitle": "Status.", "mData": "status"},
-                    {"sTitle": "Manufacture Date", "mData": "manufacture_date"},
-                    {"sTitle": "Expiry Date", "mData": "exp_date"},
-                    {"sTitle": "Batch No", "mData": "batch_no"},                  
+                    {"sTitle": "Date Received.", "mData": "designation_date"}, 
+                      {"sTitle": "Batch No", "mData": "batch_no"},            
+                                  
                     {"sTitle": "More Info", "mData": "request_id",
                         "mRender": function(data, type, full) {
                             return '<button class="show-data btn btn-small btn-primary" id = ' + data + ' >View</button>';
@@ -74,10 +159,41 @@
             
                      $.fancybox({
                 href:"#drill-down1"
-            })
-              
-    }
+            });
+            
+                 $('.show-data').live('click',function(){
   
+        $
+           var nTr = this.parentNode.parentNode;
+
+                if ($(this).text() == 'view') {
+
+                    $(this).text("close");
+
+                    //alert("Under Construction");
+
+                    var id = $(this).attr("id");
+                    //console.log(id);
+
+                    $.post("<?php echo site_url('main_dashboard/more_view_samples'); ?>" + "/" + id , function(more) {
+
+                        $table.fnOpen(nTr, more, 'more');
+                    })
+
+                }
+
+                else {
+
+                    $table.fnClose(nTr);
+                    $(this).text("view");
+                }
+        });
+            
+           
+         
+            
+        }
+   }
     
     function drawChart(chartSWF, strXML, chartdiv) {
         //Create another instance of the chart.
@@ -200,10 +316,10 @@
                 "aoColumns": [
                     {"sTitle": "Action", "mData": null, "sClass": "details-control",
                         "mRender": function(data, type, row) {
-                            return "<a class='detail_controls' href='#' id='" + row.analyst_id + "'>+</a>";
+                            return "<a class='detail_controls' href='#' id='" + row.user_id + "'>+</a>";
                         }},
-                    {"sTitle": "ANALYST NAME", "mData": "analyst_name"},
-                    {"sTitle": "DEPARTMENT", "mData": "name"},
+                    {"sTitle": "ANALYST NAME", "mData": "by"},
+                   // {"sTitle": "DEPARTMENT", "mData": "name"},
                     {"sTitle": "MONTHLY SAMPLES", "mData": "Total_samaples"}
 
                 ],
@@ -212,7 +328,7 @@
                 "bLengthChange": true,
                 "iDisplayLength": 16,
                 "sAjaxDataProp": "",
-                "sAjaxSource": "<?php echo site_url('main_dashboard/load_analysys_request'); ?>/" + y + '/' + m + '/' + d,
+                "sAjaxSource": "<?php echo site_url('main_dashboard/load_analysys_request'); ?>/" + y + '/' + m
             });
             $('#example').css('width', '100%');
 
@@ -233,10 +349,10 @@
                 "aoColumns": [
                     {"sTitle": "Action", "mData": null, "sClass": "details-control",
                         "mRender": function(data, type, row) {
-                            return "<a class='detail_controls' href='#' id='" + row.analyst_id + "'>+</a>";
+                            return "<a class='detail_controls' href='#' id='" + row.user_id + "'>+</a>";
                         }},
-                    {"sTitle": "ANALYST NAME", "mData": "analyst_name"},
-                    {"sTitle": "DEPARTMENT", "mData": "name"},
+                    {"sTitle": "ANALYST NAME", "mData": "by"},
+                   // {"sTitle": "DEPARTMENT", "mData": "name"},
                     {"sTitle": "MONTHLY SAMPLES", "mData": "Total_samaples"}
 
 
@@ -248,7 +364,7 @@
                 "bLengthChange": true,
                 "iDisplayLength": 16,
                 "sAjaxDataProp": "",
-                "sAjaxSource": "<?php echo site_url('main_dashboard/load_analysys_request'); ?>/" + y + '/' + m + '/' + d,
+                "sAjaxSource": "<?php echo site_url('main_dashboard/load_analysys_request'); ?>/" + y + '/' + m,
             });
             $('.detail_controls').live("click", function(e) {
                 e.preventDefault();
@@ -266,7 +382,7 @@
                     var id = $(this).attr("id");
                     //console.log(id);
 
-                    $.post("<?php echo site_url('main_dashboard/more_view'); ?>" + "/" + id + "/" + y + "/" + m + "/" + d, function(more) {
+                    $.post("<?php echo site_url('main_dashboard/more_view'); ?>" + "/" + id + "/" + y + "/" + m , function(more) {
 
                         table.fnOpen(nTr, more, 'more');
                     })
@@ -281,6 +397,8 @@
             });
 
         }
+        
+   
 
 
     });
@@ -669,13 +787,13 @@
 
 
 <div id="dialog" title="ANALYST TURNOVER TIME DETAILS" style="width:1100px; height:200px">
-    <select id="day" style="width:60px;" selected="selected">
+<!--    <select id="day" style="width:60px;" selected="selected">
         <option value="<?php echo sprintf("%02s", date('d')); ?>"><?php echo date('d'); ?></option>
 <?php foreach ($days as $every_day): ?>
             <option value="<?php echo $every_day; ?>" ><?php echo $every_day; ?></option>
         <?php endforeach; ?>
-    </select>
-    <select id="month" style="width:90px;" selected="selected">
+    </select>-->
+    <select id="month" style="width:120px;" selected="selected">
         <option value="<?php echo date('m'); ?>"><?php echo date('F'); ?></option>
 <?php foreach ($months as $every_month): ?>
             <option value="<?php echo $every_month; ?>" ><?php echo date('F', mktime(0, 0, 0, $every_month, 10)); ?></option>
@@ -723,6 +841,7 @@
         </table>
     </div>
     
+    
        <div style="width:1150px;" id="drill-down2">           
                
            
@@ -737,6 +856,23 @@
             </tbody>
         </table>
     </div>
+           <div style="width:1150px;" id="drill-down3">           
+               
+           
+        <table id="example3" class="display" cellspacing="0" width="" class="datatable bootstrap-datatable" >
+            <thead>
+                <tr>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="details" style="width:545px; height:500px;"></div>
+    
     <div style="width:545px; height:500px; margin-left: 520px; background: yellowgreen; position: absolute; top:50px;">
 
     </div>

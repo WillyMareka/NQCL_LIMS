@@ -29,7 +29,7 @@ class Tests extends Doctrine_Record {
 		$this -> hasOne('Units',
 			array(
 			'local' => 'Department',
-			'foreign' => 'dept_id'	
+			'foreign' => 'id'	
 		));
 		$this -> hasMany('Test_methods', array(
 			'local' => 'id',
@@ -77,6 +77,29 @@ class Tests extends Doctrine_Record {
 		$query=Doctrine_Query::create()
 		->select("t.Name, t.Department, t.Id" )
 		->from("Tests t, Request_details r")
+		->where('r.Request_id = ?', $reqid)
+		->andWhere('t.Department = ?', $dept_id)
+		->andWhere("r.test_id = t.id");
+		$testData=$query->execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $testData;
+	}
+
+	public static function getTestsUnassigned($reqid, $dept_id){
+		$query=Doctrine_Query::create()
+		->select("t.Name, t.Department, t.Id" )
+		->from("Tests t, Request_details r, Sample_issuance s")	
+		->where('r.Request_id = ?', $reqid)
+		->andWhere('t.Department = ?', $dept_id)
+		->andWhere("r.test_id = t.id")
+		->andWhere("NOT EXISTS (select * from sample_issuance where request_id = '$reqid' AND test_id = r.test_id)");
+		$testData=$query->execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $testData;
+	}
+
+	public static function getTestsPerDept($reqid, $dept_id){
+		$query=Doctrine_Query::create()
+		->select("t.Name, t.Department, t.Id" )
+		->from("Tests t, Request_details r, Sample_issuance s")	
 		->where('r.Request_id = ?', $reqid)
 		->andWhere('t.Department = ?', $dept_id)
 		->andWhere("r.test_id = t.id");

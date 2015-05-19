@@ -1,5 +1,5 @@
 <?php
-if ($is_director[0]->user_type != 8) {
+if ($is_director[0]->user_type == 115) {
     $error = 'Unauthorized User: ACCESS DENIED!';
     echo '<div style="color:red; text-align:center;">' . $error . '</div>';
 } else {

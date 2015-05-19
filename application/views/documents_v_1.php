@@ -94,7 +94,8 @@ tr.odd:hover td,
                         <th>COA Status</th>
                         <th>COA Action</th>
                         <th>Next Task...</th>   
-                        <th>Priority</th>
+                        <!--<th>Priority</th>-->
+                        <th>Action</th>
 
 
 
@@ -127,11 +128,13 @@ tr.odd:hover td,
 
                                 <?php } ?>
                             <?php } ?>
-                            <?php if ($sheets->priority === '1') { ?>
-                                <td><span id="high">High</span></td>
-                            <?php } else { ?>
-                                <td><span id="low">Low</span></td>    
-                            <?php } ?>
+                            <?php //if ($sheets->priority === '1') { ?>
+<!--                                <td><span id="high">High</span></td>-->
+                            <?php// } else { ?>
+<!--                                <td><span id="low">Low</span></td>    -->
+                            <?php// } ?>
+                                
+                                <td><a href="<?php echo site_url('documentation/finish/'.$sheets->labref);?>">Remove</a></td>
 
                         </tr>
                     <?php endforeach; ?>

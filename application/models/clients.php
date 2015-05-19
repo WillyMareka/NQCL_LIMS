@@ -61,6 +61,11 @@ class Clients extends Doctrine_Record {
 			'foreign' => 'id'			
 		));
 
+		$this -> hasMany('Client_contacts',array(
+			'local' => 'id',
+			'foreign' => 'client_id'			
+		));
+
 	}//end setUp
 
 	public function getAll() {
@@ -185,6 +190,21 @@ class Clients extends Doctrine_Record {
 		return $clientData[0];
 	}
 
+
+		public function getClient3($reqid) {
+
+		$query = Doctrine_Query::create() 
+		-> select("c.name as client_name, c.email, c.address, c.client_type, c.contact_person, c.Contact_phone
+			ca.client_agent_name, cc.contact_name, cc.contact_phone, r.id") 
+		-> from("clients c")
+		-> leftJoin("c.Client_contacts cc")
+		-> leftJoin("c.Client_agents ca")
+		-> leftJoin("c.Request r")
+		-> where("r.request_id = ?", $reqid);
+		//where("r.id IN (select max(r.id) from request where r.request_id = '$reqid') && r.client_id = c.clientid");
+		$clientData =  $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $clientData;
+	}
 
 
 	public function getNames($cl_id) {

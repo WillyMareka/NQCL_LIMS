@@ -7,6 +7,7 @@ class Microbial_load extends MY_Controller {
     }
 
     public function worksheet() {
+          error_reporting(1);
          $data['labref'] = $labref= $this->uri->segment(3);
         $data['test_id'] =$test_id= $this->uri->segment(4);
         $data['worksheet_anme']=  $this->uri->segment(1);

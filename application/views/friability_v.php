@@ -130,7 +130,7 @@ font-weight: bolder;
             <hr>
             <table class="tg-table-light">
                 <tr>
-                    <th>Weight of 20 Tablets</th>
+                    <th>Weight of Tablets</th>
                     <th>Run</th>                                  
 
                 </tr>
@@ -230,8 +230,8 @@ font-weight: bolder;
 
                                                     if (v === true) {
 
-                                                        $('input:text, textarea').val('');
-                                                        $("#com").attr("value", "");
+                                                      $('input:text, textarea').val('');
+                                                      $("#com").attr("value", "");
                                                         $('span').css('display', 'none');
                                                         prompt_dialog();
 

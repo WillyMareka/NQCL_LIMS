@@ -1,0 +1,134 @@
+<div class ="content">
+<a href = "<?php echo base_url().'user_registration_admin/addUser' ?>" ><span><b><h2>Add New User</h2></b></span></a>
+<table id = "users">
+	<thead>
+		<tr>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+		</tr>
+	</tbody>
+</table>
+
+</div>
+
+<script type="text/javascript">
+function getData(){
+	if (typeof rtable == 'undefined') {
+		var rtable = $('#users').dataTable({
+	"bJQueryUI": true,
+	"aoColumns": [
+	{"sTitle":"First Name","mData":"fname"},
+	{"sTitle":"Last Name","mData":"lname"},
+	{"sTitle":"User Name","mData":"username"},
+	{"sTitle":"Email", "mData":"email"},
+	{"sTitle":"Telephone","mData":"telephone"},
+	{"sTitle":"Department","mData":"dept_name"},
+	{"sTitle":"User Type","mData":"name"},
+	{"sTitle":"Status","mData":"status_name"},
+	{"sTitle":"Edit", "mData":null,
+	"mRender":function(data, type, row){
+		return '<a class = "edit" id = "'+row.id+'" >Edit</a>';
+		}},
+	{"sTitle":"","mData":"id", 
+	"mRender":function(data, type, full){
+			return '<a class="reset_password" href="<?php echo site_url()."user_registration_admin/user_password_reset/"?>'+data+'" id = '+data+' >Reset Password</a>';
+		} }		
+	],
+	"bDeferRender":true,
+	"bProcessing":true,
+	"bDestroy":true,
+	"bLengthChange":true,
+	"iDisplayLength":16,
+//	"sAjaxDataProp": "",
+	"sAjaxSource": '<?php echo site_url()."user_registration_admin/requests_list"?>',	
+});
+	}
+else {
+	rtable.fnDraw();
+	}
+}
+
+$(document).ready(function(){
+	$('.edit').live("click",function(e){
+		e.preventDefault();
+		var href = '<?php echo base_url()."user_registration_admin/edit_view/" ?>' + $(this).attr('id')
+		console.log(href);
+		$.fancybox.open({
+			href : href,
+			type: 'iframe',
+			autoSize: false,
+			autoDimensions : false,
+			enableEscapeButton: true,
+			width:600,
+			height: 700,
+			'beforeClose' : function(){
+				getData();
+			},
+			'afterClose':function () {
+        		window.location.reload();
+   			}
+		});
+		return(false);
+	})
+	getData();
+})
+
+$(".deactivate").live("click",function(event){
+   event.stopPropagation();
+   if(confirm("Do you want to deactivate this account?")) {
+    this.click;
+	user_id=$(this).attr('id2');
+	
+	$.ajax({
+		type:"POST",
+		url:"<?php echo base_url()."user_registration_admin/user_deactivate/"?>"+user_id,
+		success:function(message){
+			message='Account Successfully Deactivated';
+			alert(message);
+			window.location.href = '<?php echo base_url()."user_registration_admin/" ?>';
+		},
+		error:function(message){
+			alert('An error occured');
+		}
+		
+		
+		})
+      // window.location = $(this).attr('href');
+	//  
+   }       
+   event.preventDefault();
+
+});
+
+
+
+$(".delete").live("click",function(event){
+   event.stopPropagation();
+   if(confirm("Do you want to delete this user account?")) {
+    this.click;
+	user_id=$(this).attr('id');
+	
+	$.ajax({
+		type:"POST",
+		url:"<?php echo base_url()."user_registration_admin/user_delete/"?>"+user_id,
+		success:function(message){
+			message=' User Account Successfully Deleted';
+			alert(message);
+			window.location.href = '<?php echo base_url()."user_registration_admin/" ?>';
+		},
+		error:function(message){
+			alert('An error occured');
+		}
+		
+		
+		})
+      // window.location = $(this).attr('href');
+	//  
+   }       
+   event.preventDefault();
+
+});
+</script>
+</script>

@@ -91,8 +91,8 @@ function superDirector(){
 
 function reject($labref){
     $this->db->where('folder',$labref);
-    $this->db->update('directors',array('approval_status'=>'2'));
-    redirect('dashboard_control/samples/');
+    $this->db->update('directors',array('approval_status'=>'4'));
+    redirect('main_dashboard/samples/');
     }
     
     
@@ -105,8 +105,8 @@ function reject_coa_draft($labref, $level){
     
     function reject_d($labref){
     $this->db->where('folder',$labref);
-    $this->db->update('directors',array('approval_status'=>'2'));
-    redirect('directors/superDirector');
+    $this->db->update('directors',array('approval_status'=>'3'));
+    redirect('main_dashboard/samples');
     }
     
     
@@ -154,9 +154,9 @@ function reject_coa_draft($labref, $level){
         $this->db->update('directors', $data);
         $this->updateDrafts($labref);
         $this->updateDocumentation();
-        $this->addSampleTrackingInformation();
+        $this->addSampleTrackingInformationSD();
        
-        redirect('dashboard_control/samples/');
+        redirect('main_dashboard/samples');
     }
     
     
@@ -179,15 +179,19 @@ function reject_coa_draft($labref, $level){
         $labref=  $this->uri->segment(3);
         
         $data = array(
-            'approval_status' => 1
+            'approval_status' => 2
         );
         $this->db->where('folder', $labref);
         $this->db->update('directors', $data);
         $this->updateDrafts_SD($labref);
         $this->updateDocumentation();
         $this->addSampleTrackingInformationSD();
-         $this->addSignature();
-        redirect('directors/superdirector');
+        $this->addSignature();
+        redirect('main_dashboard/samples');
+    }
+    
+    function getCAN($labref){
+     return $this->db->select('number')->where('request_id',$labref)->get('coa_number')->result(); 
     }
     
      function addSampleTrackingInformationSD() {
@@ -196,6 +200,7 @@ function reject_coa_draft($labref, $level){
         $reviewer_name = 'Documenation';
         $activity = 'Generate & Print final COA for archieving';
         $labref = $this->uri->segment(3);
+        $can_no=  $this->getCAN($labref);
         $names = $userInfo[0]->fname . " " . $userInfo[0]->lname;
         $from = $names . '- Director\'s Desk';
         $to = $reviewer_name;
@@ -209,6 +214,21 @@ function reject_coa_draft($labref, $level){
             'state'=>2,
             'current_location' => 'Documentation\'s Desk'
         );
+        
+         $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>'Auto Generated',
+                     'activity'=>'CAN No.', 
+                     'user_id'=>'',
+                     'date_issued'=>'-----',
+                     'date_returned'=>date('Y').'-'.$can_no[0]->number
+                     
+                 ));
+         
+          $this->db->where('labref', $labref);
+               $this->db->where('activity','COA Approval');
+            $this->db->update('sample_details', array('date_returned'=>date('Y-m-d')));
+         
         $this->db->where('labref', $labref);
         $this->db->update('worksheet_tracking', $array_data);
     }
@@ -217,7 +237,7 @@ function reject_coa_draft($labref, $level){
     function addSignature(){                    
                     $name=  $this->getUsersInfo();
                     $signature_name=$name[0]->fname." ".$name[0]->lname;
-                    $designation ='DIRECTOR';
+                    $designation ='DIRECTOR:';
                     $labref = $this -> uri->segment(3);
                     $date_signed=date('m-d-Y');
                     
@@ -250,13 +270,27 @@ function reject_coa_draft($labref, $level){
             'stage'=>'10',
             'current_location' => 'Director\'s office'
         );
+        
+           $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>$reviewer[0]->title ." ". $reviewer_name,
+                     'activity'=>'COA Approval', 
+                     'user_id'=>$reviewer[0]->id,
+                     'date_issued'=>date('Y-m-d')
+                     
+                 ));
+           
+            $this->db->where('labref', $labref);
+               $this->db->where('activity','Draft COA Review');
+            $this->db->update('sample_details', array('date_returned'=>date('Y-m-d')));
+        
         $this->db->where('labref', $labref);
         $this->db->update('worksheet_tracking', $array_data);
     }
     
         public function getUsersInfo() {
         $user_id = $this->session->userdata('user_id');
-        $this->db->select('fname,lname');
+        $this->db->select('id,fname,lname');
         $this->db->where('id', $user_id);
         $query = $this->db->get('user');
         return $result = $query->result();
@@ -264,7 +298,7 @@ function reject_coa_draft($labref, $level){
                    
                 function getDirector(){
                   
-                  $this->db->select('fname,lname');
+                  $this->db->select('id,fname,lname');
                   $this->db->where('user_type',8);
                   $this->db->limit(1);
                   $query=  $this->db->get('user');

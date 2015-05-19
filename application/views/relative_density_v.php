@@ -218,7 +218,7 @@
             }
             else {
                 $('#Save').prop('value', 'Saving, Please Wait....');
-                $('#Save').prop('disabled', 'disabled');
+              $('#Save').prop('disabled', 'disabled');
                 dataString2 = $('#RdForm').serialize();
 
                 $.ajax({

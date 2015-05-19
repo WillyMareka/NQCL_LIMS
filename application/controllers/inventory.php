@@ -36,8 +36,7 @@ class Inventory extends CI_Controller {
         $date_res = $this -> input -> post("date_res");
         $potency = $this -> input -> post("potency");
         $potency_unit = $this -> input -> post("p_unit");
-        $potency_db = $this -> input -> post("potency_db");
-        $potency_db_unit = $this -> input -> post("p_db_unit");
+        $potency_type = $this -> input -> post("potency_type");
         $init_mass = $this -> input -> post("init_mass");
         $init_mass_unit = $this -> input -> post("init_mass_unit");
         $application = $this -> input -> post("application");
@@ -93,23 +92,25 @@ class Inventory extends CI_Controller {
         */
         
 
-        $s_no = Refsubs::getLastSerial($name);
-        $count = RefSubs::getCount2($batch_no, $name);
+        //$s_no = Refsubs::getLastSerial($name);
+        $count = RefSubs::getCount2($batch_no, $name, $source);
+        $serials = Refsubs::getSerialNos($batch_no, $name, $source);
         if((int)$count[0]['count'] > 0){
             //$db_rscode = Refsubs::getCode($batch_no); 
             //$f_rs_code = $db_rscode[0]['rs_code'];
-            $no = (int)$s_no[0]['serial_no'];
+           
+            $no = $serials[0]['distinct'];
             $total_quantity = $quantity * $init_mass;
             $existing_quantity = Refsubs::getQuantity($batch_no);
             $status = "Reserved";
             //$existing_quantity[0]['count'];
            // $overall_quantity = $total_quantity + $existing_quantity;    
         }
-        elseif((int)$count[0]['count'] < 1){
+        elseif((int)$count[0]['count'] == 0){
             $names = Refsubs::getNameCount($name);
             $s_no = Refsubs::getLastSerial($name);
-            if((int)$names[0]['count'] > 1){
-                $no = (int)$s_no[0]['serial_no'] + 1;
+            if((int)$names[0]['count'] >= 1){
+                $no = (int)$s_no[0]['max'] + 1;
                 $status= "Reserved";
             }
             else{
@@ -136,9 +137,8 @@ class Inventory extends CI_Controller {
             $refSub -> date_of_expiry = date('y-m-d',strtotime($date_e));
             $refSub -> date_of_restandardisation = date('y-m-d',strtotime($date_res));
             $refSub -> potency = $potency;
-            $refSub -> potency_db = $potency_db;
             $refSub -> potency_unit = $potency_unit;
-            $refSub -> potency_db_unit = $potency_db_unit;
+            $refSub -> potency_type = $potency_type;
             $refSub -> init_mass = $init_mass;
             $refSub -> init_mass_unit = $init_mass_unit;
             $refSub -> status = $status;
@@ -202,8 +202,7 @@ class Inventory extends CI_Controller {
         $date_res = $this -> input -> post("date_res");
         $potency = $this -> input -> post("potency");
         $potency_unit = $this -> input -> post("p_unit");
-        $potency_db = $this -> input -> post("potency_db");
-        $potency_db_unit = $this -> input -> post("p_db_unit");
+        $potency_type = $this -> input -> post("potency_type");
         $init_mass = $this -> input -> post("init_mass");
         $init_mass_unit = $this -> input -> post("init_mass_unit");
         $application = $this -> input -> post("application");
@@ -271,7 +270,7 @@ class Inventory extends CI_Controller {
         'potency' => $potency,
         'potency_unit' => $potency_unit,
         'potency_db' => $potency_db,
-        'potency_db_unit' => $potency_db_unit,
+        'potency_type' => $potency_type,
         'init_mass' => $init_mass,
         'init_mass_unit' => $init_mass_unit,
         'status' => $status,
@@ -814,16 +813,14 @@ function sourceSuggestions()
 
 
       public function equipmentadd(){
-
         $data['content_view'] = "equipment_add_v";
         $this -> base_params($data);
-        
     }
 
 
       public function equipmentlist(){
 
-        $data['equipment'] = Equipment::getAll();    
+        $data['equipment'] = Equipment::getAll();  
         $data['content_view'] = "equipment_list_v";
         $this -> base_params($data);
         
@@ -1438,11 +1435,7 @@ function sourceSuggestions()
 
 
         public function base_params($data) {
-        $data['title'] = "Inventory";
-        $data['styles'] = array("jquery-ui.css");
-        $data['scripts'] = array("jquery-ui.js");
-        $data['scripts'] = array("SpryAccordion.js");
-        $data['styles'] = array("SpryAccordion.css");       
+        $data['title'] = "Inventory";      
         //$data['content_view'] = "inventory_v";
         $this -> load -> view('template', $data);
     }

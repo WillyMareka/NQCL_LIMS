@@ -24,6 +24,12 @@ class Assign extends MY_Controller {
       endforeach;
     }
 
+    
+    function edit_assignment($labref){
+        $date=  $this->input->post('date_field');
+        $this->db->where('id',$labref)->update('assigned_samples',array('date_time_tracker'=>$date));
+        echo 'done';
+    }
     public function getReviewers() {
         $this->db->select('u.fname as fname, u.lname as lname, u.id as id');
         $this->db->from('user u');
@@ -101,8 +107,8 @@ class Assign extends MY_Controller {
       }
         $this->createDir();
         $this->full_copy();
-      $this->addSampleTrackingInformation();
-      $this->addSignature();
+        $this->addSampleTrackingInformation();
+        $this->addSignature();
         
 
         echo 'Reloading page.....';
@@ -110,10 +116,31 @@ class Assign extends MY_Controller {
         // redirect('uploaded_worksheets');
     }
     
+    public function reviewerDetailsView() {
+        $data['reqid'] = $this -> uri -> segment(3);
+        $data['content_view'] = 'reviewer_details_v';
+        $this -> load ->view ('template1', $data);
+    }
+
+    public function getReviewerDetails(){
+        $reqid = $this -> uri -> segment(3);
+        $reviewer_details = Reviewer_worksheets::getReviewerDetails($reqid);
+        if(!empty($reviewer_details)){
+            foreach ($reviewer_details as $rd) {
+                $data[] = $rd;
+            }
+            echo json_encode($data);
+        }
+        else{
+            echo "[]"; 
+        }
+    }
+
+
     function complete_review($labref){
         $this->db->where('labref',$labref)->update('review_samples',array('a_stat'=>1)); 
         
-                $supervisor = $this->getSupervisor($labref);
+        $supervisor = $this->getSupervisor($labref);
         $from = $supervisor[0]->analyst_name;
         $date = date('d-M-Y H:i:s');
         $activity = 'Documentation - Awaiting D.Director;\'s Review';
@@ -197,13 +224,22 @@ class Assign extends MY_Controller {
             'stage'=>'7',
             'current_location' => 'Review'
         );
+            $this->db->insert('sample_details',array(
+                     'labref' =>$labref,
+                     'by'=>$reviewer_name,
+                     'activity'=>'Review', 
+                     'user_id'=>$reviewer[0]->id,
+                     'date_issued'=>date('Y-m-d')
+                     
+                 ));
+        
         $this->db->where('labref', $labref);
         $this->db->update('worksheet_tracking', $array_data);
     }
 
     function getReviewer() {
         $analyst_id = $this->input->post('reviewer');
-        $this->db->select('fname,lname');
+        $this->db->select('id,fname,lname');
         $this->db->where('id', $analyst_id);
         $query = $this->db->get('user');
         return $result = $query->result();

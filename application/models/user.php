@@ -55,6 +55,10 @@ class User extends Doctrine_Record {
 			'local' => 'id',
 			'foreign' => 'Analyst_id'			
 			));
+		$this -> hasOne('reviewer_worksheets', array(
+			'local'=>'id',
+			'foreign' => 'reviewer_id'
+		));
 	}
 
 	public function getNameCount($name){

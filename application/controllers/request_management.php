@@ -1,14 +1,110 @@
 <?php
-
+//session_start();
 class Request_Management extends MY_Controller {
 
     function __construct() {
         parent::__construct();
     }
 
+    function show_session(){
+        $k= mysql_query('SELECT CURRENT_USER()');
+        while ($row = mysql_fetch_array($k)) {
+            echo $row[0];
+        }
+    }
+     
     public function index() {
         $this->listing();
     }
+    
+    function get_sample_personnel($i){
+        echo json_encode($this->db->where('labref',$i)->get('sample_details')->result());
+    }
+      function get_sample_sheet_download($i){
+       return $this->db->where('labref',$i)->get('worksheet_reason')->result();
+    }
+       function get_sample_compliance($i){
+       return $this->db->where('labref',$i)->get('test_compliance')->result();
+    }
+   function get_sample_compliancedesc($i){
+      return $this->db->where('labref',$i)->get('test_non_compliance')->result();  
+   }
+    
+      function get_sample_signatories($i){
+        echo json_encode($this->db->where('labref',$i)->get('signature_table')->result());
+    }
+      function get_sample_signatories_1($i){
+        echo json_encode($this->db->where('labref',$i)->get('sample_details')->result());
+    }
+    function load_tests($i){
+     echo json_encode($this->db->query("SELECT name FROM `tests` t, request_details si WHERE si.test_id = t.id AND si.lab_ref_no ='$i'" )->result());  
+    }
+     function load_tests_done($i){
+     echo json_encode($this->db->query("SELECT * FROM test_compliance WHERE labref ='$i'" )->result());  
+    }
+      function load_tests_reason($i){
+     echo json_encode($this->db->query("SELECT * FROM test_non_compliance WHERE labref ='$i'" )->result());  
+    }
+    
+    
+    function saveSampleDetails(){
+        $labref = $this->input->post('sample_req'); 
+        $this->db->where('labref',$labref)->delete('sample_details');         
+       $activity = $this->input->post('activity'); 
+       $by = $this->input->post('by'); 
+       $d_issued = $this->input->post('datei'); 
+       $d_returned = $this->input->post('dater'); 
+       $compliance =   $this->input->post('compliance'); 
+       $tests =    $this->input->post('tests'); 
+        $reason =    $this->input->post('reason_of_nonc'); 
+       //$this->output->enable_profiler();
+       
+       for($i=0;$i<count($activity);$i++){
+           $array = array(
+               'labref'=>$labref,
+               'activity'=>$activity[$i],
+               'by'=>$by[$i],
+               'date_issued'=>$d_issued[$i],
+               'date_returned'=>$d_returned[$i]
+           );
+           $this->db->insert('sample_details',$array); 
+       }
+        $this->db->where('labref',$labref)->delete('test_compliance');
+             for($i=0;$i<count($tests);$i++){
+           $array = array(
+               'labref'=>$labref,
+               'test'=>$tests[$i],
+               'compliance'=>$compliance[$i],
+              
+           );
+          
+         $this->db->insert('test_compliance',$array); 
+       }
+       
+       $array2 = array(
+               'labref'=>$labref,
+               'reason'=> $this->input->post('reason_of_nonc'),
+            
+              
+           );
+            $this->db->where('labref',$labref)->delete('test_non_compliance');
+       $this->db->insert('test_non_compliance',$array2);
+       $this->db->where('request_id',$labref)->update('request',array('compliance'=>$this->input->post('reason_of_nonc')));
+
+    }
+    
+    function check_su_stat($i){
+     
+       $number = $this->db->where('labref',$i)->count_all_results('sample_details');
+      if($number > 0){
+          echo json_encode(array('stat'=>'1'));
+      }else{
+           echo json_encode(array('stat'=>'0'));
+      }
+      
+       
+    }
+    
 
     function GetAutocomplete($options = array()) {
         $this->db->distinct();
@@ -16,6 +112,28 @@ class Request_Management extends MY_Controller {
         $this->db->like('name', $options['name'], 'after');
         $query = $this->db->get('clients');
         return $query->result();
+    }
+
+	function get_sample_data($i){
+     return $this->db->query("SELECT r.request_id,r.active_ing, r.sample_qty, d.name, r.designation_date, r.manufacturer_name, r.manufacturer_add, r.label_claim, r.country_of_origin, r.dsgntr
+FROM request r, dosage_form d
+WHERE r.dosage_form = d.id
+AND r.request_id='$i';")->result();   
+    }
+	
+	
+
+    function getMoreSampleInfo(){
+        $data['reqid'] = $reqid = $this -> uri -> segment(3);
+        $data['request'] = Request::getSingleHydratedSelect($data['reqid']);
+        $data['tests'] = Request_details::getTestsNames($reqid);
+        $data['client'] = Clients::getClient3($reqid);
+        $data['info'] = $this -> get_sample_data($reqid);
+        $data['w_res']=  $this->get_sample_sheet_download($reqid);
+        $data['c_comp']=  $this->get_sample_compliance($reqid);
+        $data['desc']=  $this->get_sample_compliancedesc($reqid);
+        $data['content_view'] = "sample_more_info_v";
+        $this->load->view("template1", $data);
     }
 
     //Function to feed quote form lightbox - where documentation enter quoted amount.
@@ -202,6 +320,13 @@ class Request_Management extends MY_Controller {
         $query = $this->db->get('request');
         return $query->result();
     }
+    
+    
+    function loadPeople(){
+        $people = $this->db->select('title, fname, lname')->order_by('fname', 'asc')->get('user')->result();
+        echo json_encode($people);
+        
+    }
 
     function suggestions3() {
 
@@ -309,6 +434,10 @@ class Request_Management extends MY_Controller {
         $query = $this->db->get('request');
         return $query->result();
     }
+    
+     function getsamples(){
+         return $this->db->select('request_id')->get('request')->result();
+     }
 
     function make_oos($labref) {
         $this->db->where('request_id', $labref)->update('request', array('oos' => '1'));
@@ -489,7 +618,7 @@ class Request_Management extends MY_Controller {
         $this->load->helper('file');
 
         $dompdf = new DOMPDF();
-		$dompdf->set_paper(array(0, 0, 316.8, 432));
+        $dompdf->set_paper(array(0, 0, 316.8, 432));
 
         $saveTo = './labels';
         $data['reqid'] = $this->uri->segment(3);
@@ -528,10 +657,15 @@ class Request_Management extends MY_Controller {
 
     public function requests_list() {
         $request = Request::getAllHydrated();
-        foreach ($request as $r) {
-            $data[] = $r;
+        if(!empty($request)){
+            foreach ($request as $r) {
+                $data[] = $r;
+            }
+            echo json_encode($data);
         }
-        echo json_encode($data);
+        else{
+            echo "[]";
+        }
     }
 
     public function oos_requests_list() {
@@ -548,14 +682,26 @@ class Request_Management extends MY_Controller {
         echo json_encode($request);
     }
 
-   public function setPresentationDescription() {
+    public function setPresentationDescription() {
         $reqid = $this->uri->segment(3);
         $test_id = $this->uri->segment(4);
         $presentation = $this->input->post("presentation");
         $description = $this->input->post("description");
         $worksheet_url = $this->input->post("worksheet_url");
-
         $desc_status = '1';
+
+        //Get monograph comment and id arrays
+        $monograph_comment = $this -> input -> post("monograph_comment");
+        $monograph_ids = $this -> input -> post("monograph_ids");
+
+        //Loop through monographs, save
+        for($i=0;$i<count($monograph_comment);$i++){
+           $monograph = new Monograph_usage();
+           $monograph -> request_id = $reqid;
+           $monograph -> monograph_id = $monograph_ids[$i];
+           $monograph -> comment = $monograph_comment[$i];
+           $monograph -> save();
+        }        
 
         $this->session->set_userdata('wksht_url', $worksheet_url);
         $presentation_description_update = array(
@@ -579,6 +725,8 @@ class Request_Management extends MY_Controller {
 
         //Get all tests
         $all_tests = Request_details::getTestIds($reqid);
+
+
 
         //Get Client Id
         $client_id_info = Request::getClientId($reqid);
@@ -606,8 +754,6 @@ class Request_Management extends MY_Controller {
         }
 
     }
-   
-   
 
     public function getClientInfo() {
         $id = $this->uri->segment(3);
@@ -639,10 +785,16 @@ class Request_Management extends MY_Controller {
       function getDraftCert() {
         return $this->db->where('stat', 0)->get('draft_samples')->result();
     }
-
-    function getAssigned() {
-        return $this->db->where('stat', 0)->get('assigned_samples')->result();
-    }
+	
+	function getAssigned(){
+		return $this -> db -> query("
+			SELECT a_s.*, si.samples_no as quantity_issued, p.name as sample_packaging, r.packaging 
+			FROM `assigned_samples` a_s 
+			left join sample_issuance si on a_s.labref = si.lab_ref_no
+			left join request r on a_s.labref = r.request_id
+			left join packaging p on r.packaging = p.id
+			group by a_s.labref") -> result();
+	}
 
     function getReview() {
         return $this->db->where('stat', 0)->get('review_samples')->result();
@@ -732,6 +884,7 @@ class Request_Management extends MY_Controller {
         $data['title'] = "Request Management";
         $data['settings_view'] = "requests_v_ajax";
         $data['info'] = Request::getAll();
+        $data['request']=  $this->getsamples();
         $this->base_params($data);
     }
 
@@ -766,6 +919,7 @@ class Request_Management extends MY_Controller {
         $data['wetchemistry'] = Tests::getWetChemistry();
         $data['microbiologicalanalysis'] = Tests::getMicrobiologicalAnalysis();
         $data['medicaldevices'] = Tests::getMedicalDevices();
+        $data['client_agents'] = Client_agents::getAll();
         $data['scripts'] = array("jquery-ui.js");
         $data['scripts'] = array("jquery.ui.core.js", "jquery.ui.datepicker.js", "jquery.ui.widget.js");
         $data['styles'] = array("jquery.ui.all.css");
@@ -855,7 +1009,7 @@ class Request_Management extends MY_Controller {
             'Manufacturer_name' => $manufacturer_name,
             'Manufacturer_add' => $manufacturer_address,
             'Batch_no' => $batch_no,
-			'exp_date' => date('Y-m-d', strtotime($expiry_date)),
+            'exp_date' => date('Y-m-d', strtotime($expiry_date)),
             'Manufacture_date' =>  date('Y-m-d', strtotime($manufacture_date)),
             'Designator_Name' => $designator_name,
             'Designation_date' => date('Y-m-d', strtotime($designation_date)),
@@ -925,12 +1079,29 @@ class Request_Management extends MY_Controller {
         $dateformat = $this->input->post("dateformat");
         $test = $this->input->post("test");
         $cid = $this->input->post("clientid");
+        $client_agent = $this ->input ->post("client_agent");
 
         if (!empty($cid)) {
             $clientid = $this->input->post("clientid");
+
+            //Get Client Agent Id of Client
+            $c_a_i = Clients::getClientAgentId($clientid);
+            $c_a_id = $c_a_i[0]['client_agent_id'];
+
+            if($client_agent != $c_a_id){
+
+                //Client Agent Update Array
+                $client_agent_update = array('client_agent_id'=>$client_agent);
+
+                //Update Client Agent in Clients
+                $this->db->where('id', $clientid);
+                $this->db->update('clients', $client_agent_update); 
+            }
+
         } else {
             $cid = Clients::getLastId();
             $clientid = $cid[0]['max'] + 1;
+            
         }
 
         $product_name = $this->input->post("product_name");
@@ -947,10 +1118,6 @@ class Request_Management extends MY_Controller {
             $expiry_date = str_replace(' ', '-', $ed);
             $manufacture_date = str_replace(' ', '-', $md);
         }
-		else if($dateformat == ''){
-			$expiry_date = '';
-			$manufacture_date = '';
-		}
         $label_claim = $this->input->post("label_claim");
         $active_ingredients = $this->input->post("active_ingredients");
         $quantity = $this->input->post("quantity");
@@ -967,6 +1134,9 @@ class Request_Management extends MY_Controller {
         $description = $this->input->post("description");
         $clientsampleref = $this->input->post("applicant_reference_number");
         $packaging = $this->input->post("packaging");
+        $client_agent_id = $this->input->post("client_agent");
+        
+
         //$full_details_status = 0;
         //Loop through tests, saving each in row of its own in request_details table
         for ($i = 0; $i < count($test); $i++) {
@@ -1039,6 +1209,7 @@ class Request_Management extends MY_Controller {
         $request->edit_notes = $edit_notes;
         $request->packaging = $packaging;
         $request->split_status = $split_status;
+        $request->client_agent_id = $client_agent_id;
         $request->save();
         $this->run_overal_micro();
         $this->create_sample_folder($client_number);
@@ -1276,11 +1447,25 @@ class Request_Management extends MY_Controller {
         $method_status = "1";
         $data['components'] = Components::getComponents($reqid, $test_id);
 
+        //Get limits
+        $limits = $this -> input -> post("limits");
+
+        //Save the limits
+        $lim =  new Limits();
+        $lim -> request_id = $reqid;
+        $lim -> test_id = $test_id;
+        $lim -> limits = $limits;
+        $lim -> save();
+        
+        
+        //Get invoice components
+        //$invoice_components  = Invoice_components::getInvoiceComponents($reqid);
+
         //Initialize array to hold method values separated by colon
         $methodsColonArray = array();
 
         for ($i = 0; $i < count($component_ids); $i++) {
-            $post_index = "component" . $component_ids[$i];
+            $post_index = "component". $component_ids[$i];
             $method_name = $this->input->post($post_index);
             $method_charges = Test_methods::getMethodChargeHydrated($method_name, $test_id);
             if (empty($method_charges)) {
@@ -1294,11 +1479,6 @@ class Request_Management extends MY_Controller {
             //Push methods to array
             array_push($methodsColonArray, $method_name);
             
-            /*
-            /$method_id = $method_charges[0]['id'];	
-            /*$methodsUpdateArray = array(
-                'method' => $this->input->post($post_index)
-            );*/
 
             $methodsUpdateArray2 = array(
                 'method_name' => $this->input->post($post_index)
@@ -1323,6 +1503,8 @@ class Request_Management extends MY_Controller {
                 'method_id' => $method_id,
                 'method_charge' => $method_charge
             );
+
+
 
             $this->db->where($m_array3);
             $this->db->update('components', $methodsUpdateArray2);

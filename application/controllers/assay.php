@@ -10,6 +10,117 @@ class Assay extends MY_Controller {
     function copy(){
         $this->copyWorkbook();
     }
+    
+    function creatWorkbookSheets($labref) {
+//             $file21 = "Workbooks/" . $labref . "/" . $labref . ".xlsx";
+//             $objPHPExcel1 = PHPExcel_IOFactory::load($file21);
+//          $sheetcount = $objPHPExcel1->getSheetCount();
+//            for($w=1;$w<count($sheetcount);$w++){
+//                if($sheetcount > 0){
+//                $objPHPExcel1->removeSheetByIndex($w);
+//                }
+//            }
+//       $objWriter1 = PHPExcel_IOFactory::createWriter($objPHPExcel1, 'Excel2007');
+//        $objWriter1->save($file21);
+
+        $id = $this->uri->segment(4);
+        //$sampleinfo = $this->loadSampleInfo($labref);
+        //$standardsinfo = $this->loadStandardsData($labref, $heading);
+        $worksheets = $this->input->post('test_names');
+        $molecule = $this->input->post('molecule');
+        $test_id = $this->input->post('test_id');
+        for ($i = 0; $i < count($worksheets); $i++) {
+            $file1 = "exceltemplates/$worksheets[$i].xlsx";
+            $file2 = "Workbooks/" . $labref . "/" . $labref . ".xlsx";
+            $outputFile = "Workbooks/" . $labref . "/" . $labref . ".xlsx";
+
+            $objPHPExcel = PHPExcel_IOFactory::load($file2);
+            $objPHPExcel2 = PHPExcel_IOFactory::load($file1);
+            
+          
+
+            $name = $objPHPExcel2->getSheet(0);
+            $objPHPExcel->addExternalSheet($name);
+            $end = $objPHPExcel->getSheetCount();
+            $show_number = array();
+            foreach (range(0, $end - 1) as $number) {
+                $show_number[] = $number;
+            }
+            $sheet = max($show_number);
+
+
+            $objPHPExcel->setActiveSheetIndex($sheet); 
+            $objPHPExcel->getActiveSheet()->setCellValue('A250',$test_id[$i]);
+            $objPHPExcel->getActiveSheet()->setTitle($molecule[$i]);
+         
+
+
+//        $objDrawing = new PHPExcel_Worksheet_Drawing();
+//        $objDrawing->setName('NQCL worksheet');
+//        $objDrawing->setDescription('Lab Excel');
+//        //Path to signature .jpg file
+//        
+//        $objDrawing->setPath('NQCL_lOGO.jpg');
+//        $objDrawing->setOffsetX(8);                     //setOffsetX works properly
+//        $objDrawing->setCoordinates('A1');             //set image to cell E38
+//        $objDrawing->setHeight(75);                     //signature height  
+//        $objDrawing->setWorksheet($objPHPExcel->getActiveSheet($sheet));  //save 
+
+
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+            $objWriter->save($outputFile);
+        }
+        $this->readandWrite($labref);
+    //    echo 'Save Was Successful';
+    }
+
+    function readandWrite($labref) {
+        $test_id = $this->input->post('test_id');
+        $sampleinfo = $this->loadSampleInfo($labref);
+        $source = "Workbooks/" . $labref . "/" . $labref . ".xlsx";
+        $objPHPExcel = PHPExcel_IOFactory::load($source);
+        $sheetnames = $objPHPExcel->getSheetNames();
+        $molecules = $this->getMolecules($labref);
+        for ($i = 0; $i < count($molecules); $i++) {
+            foreach ($sheetnames as $name):
+                $worksheet = $objPHPExcel->setActiveSheetIndexByName($name);
+          
+
+                if ($name == 'Uniformity') {
+                  $worksheet->setCellValue('C11', $sampleinfo[0]->product_name)
+                            ->setCellValue('C12', $sampleinfo[0]->request_id)
+                            ->setCellValue('C13', $sampleinfo[0]->active_ing)
+                            ->setCellValue('C14', $sampleinfo[0]->label_claim)
+                            ->setCellValue('C15', $sampleinfo[0]->updated_at);
+                } else if ($name == $molecules[$i]->name) {                 
+                   $worksheet = $objPHPExcel->setActiveSheetIndexByName($molecules[$i]->name);
+                    $standardsinfo = $this->loadStandardsData($labref, $molecules[$i]->name);
+
+                  $worksheet->setCellValue('B18', $sampleinfo[0]->product_name)
+                            ->setCellValue('B19', $sampleinfo[0]->request_id)
+                            ->setCellValue('B20', $sampleinfo[0]->active_ing)
+                            ->setCellValue('B21', $sampleinfo[0]->label_claim)
+                            ->setCellValue('B22', $sampleinfo[0]->updated_at)
+                            ->setCellValue('B26', $standardsinfo[0]->name)
+                            ->setCellValue('B27', $standardsinfo[0]->rs_code)
+                            ->setCellValue('B28', $standardsinfo[0]->potency)
+                            ->setCellValue('B29', $standardsinfo[0]->water_content);
+                } else {
+                  $worksheet->setCellValue('B18', $sampleinfo[0]->product_name)
+                            ->setCellValue('B19', $sampleinfo[0]->request_id)
+                            ->setCellValue('B20', $sampleinfo[0]->active_ing)
+                            ->setCellValue('B21', $sampleinfo[0]->label_claim)
+                            ->setCellValue('B22', $sampleinfo[0]->updated_at);
+                }               
+
+            endforeach;
+          //  echo 'and Successful write';
+        }
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save($source);
+    }
+
+  
 
     public function assay_page() {
 
@@ -139,13 +250,15 @@ class Assay extends MY_Controller {
         $rawform=  $this->justBringDosageForm($labref);
         $dosageForm=$rawform[0]->dosage_form;
         if($worksheet_name == "assay" && $dosageForm=="2" || $dosageForm=="1" || $dosageForm=="6"|| $dosageForm=="5"|| $dosageForm=="16" || $dosageForm=="17"){
-            $this->assay_worksheet();
+            $this->assay_worksheet_c();
          }else if($worksheet_name == "assay" && $dosageForm=="13" || $dosageForm=="7"  || $dosageForm=="8"  || $dosageForm=="10" || $dosageForm=="12"  ){
             $this->assay_i_worksheet();
         }else if($worksheet_name == "assay" && $dosageForm=="11" || $dosageForm=="15"){
            $this->assay_s_worksheet();
-        }else if($worksheet_name == "assay" && $dosageForm=="4" || $dosageForm=="9"){
+        }else if($worksheet_name == "assay" && $dosageForm=="4" ){
            $this->assay_t_worksheet();
+        }else if($dosageForm=="9"){
+           $this->assay_p_worksheet();
         }
         }
         
@@ -187,7 +300,7 @@ class Assay extends MY_Controller {
         $this->base_params($data);
     }
     
-      public function assay_worksheet_c() {
+       public function assay_p_worksheet() {
        
         $labref = $this->uri->segment(3);
        
@@ -197,12 +310,36 @@ class Assay extends MY_Controller {
         $data['active'] = $this->getComponent($labref);
         $data['labreference']=  $this->loadlabref();
         //print_r($data['active'][0]->component);
+        $data['settings_view'] = "assay_multiple_v_pi";
+       
+        $data['unassay'] = $this->getUniformity($labref);
+        //$data['components'] = $this->loadComponents($labref);
+
+        $this->base_params($data);
+    }
+    
+      public function assay_worksheet_c() {
+       
+        $labref = $this->uri->segment(3);
+       
+        $data['test_id']=$this->uri->segment(4);
+        $data['repeat'] = 6;
+        $data['labref'] = $this->uri->segment(3);
+        $data['active'] = $this->getComponent($labref);
+        $data['labreference']=  $this->loadlabref();
+        $data['T']=  $this->getTests();
+            $data['mole'] = $this->getMolecule($labref);
+        //print_r($data['active'][0]->component);
         $data['settings_view'] = "assay_multiple_v_2";
        
         $data['unassay'] = $this->getUniformity($labref);
         //$data['components'] = $this->loadComponents($labref);
 
         $this->base_params($data);
+    }
+    
+    function getTests(){
+        return $this->db->get('worksheets_excel')->result();
     }
     
         public function assay_i_worksheet() {
@@ -215,7 +352,7 @@ class Assay extends MY_Controller {
         $data['active'] = $this->getComponent($labref);
         $data['labreference']=  $this->loadlabref();
         //print_r($data['active'][0]->component);
-        $data['settings_view'] = "assay_multiple_v_injection";
+        $data['settings_view'] = "assay_multiple_v_injection_1";
        
         $data['unassay'] = $this->getUniformityAssay($labref);
         //$data['components'] = $this->loadComponents($labref);
@@ -251,7 +388,7 @@ class Assay extends MY_Controller {
         $data['active'] = $this->getComponent($labref);
         $data['labreference']=  $this->loadlabref();
         //print_r($data['active'][0]->component);
-        $data['settings_view'] = "assay_multiple_v_suspensions";
+        $data['settings_view'] = "assay_multiple_v_suspensions_1";
        
         $data['rd'] = $this->getUniformityAssay($labref);
         //$data['components'] = $this->loadComponents($labref);
@@ -284,7 +421,7 @@ class Assay extends MY_Controller {
         $data['test_id']=$this->uri->segment(4);
         $data['repeat'] = 6;
         $data['labref'] = $this->uri->segment(3);
-        $data['active'] = $this->getComponent($labref);
+        $data['active'] = $this->getMolecule($labref);
         $data['labreference']=  $this->loadlabref();
         //print_r($data['active'][0]->component);
         $data['settings_view'] = "titration_v";
@@ -293,6 +430,10 @@ class Assay extends MY_Controller {
         //$data['components'] = $this->loadComponents($labref);
 
         $this->base_params($data);
+    }
+    
+    function getMolecule($labref){
+        return $this->db->where('request_id',$labref)->get('components')->result();
     }
 
     public function getWorksheet() {
@@ -573,7 +714,7 @@ class Assay extends MY_Controller {
                     ->setCellValue('F43', $this->input->post('u_weight1'))
                  
                  
-                 //->setCellValue('B59', $this->input->post('aiweight'))
+                 ->setCellValue('B57', $this->input->post('tabs_caps_average'))
                     ->setCellValue('B59', $this->input->post('svf1'))
                     ->setCellValue('B60', $this->input->post('sp1'))
                     ->setCellValue('B61', $this->input->post('svf2'))
@@ -671,7 +812,7 @@ $objPHPExcel->getActiveSheet()->setTitle('AD_'.$component1);
                 // $this->updateWorksheetNo();
             //$this->upDatePosting($labref);
             echo 'Data exported';
-          //  exit();
+         //   exit();
         } else {
             echo 'Dir does not exist';
             

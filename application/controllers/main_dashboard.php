@@ -18,6 +18,59 @@ class Main_dashboard extends MY_Dashboard {
         $FC = $this->Charts();
     }
 
+    function samples() {
+        error_reporting(0);
+        $data['worksheets'] = $this->worksheets();
+        $data['reviewer_id'] = $this->session->userdata('user_id');
+               $data['all_clients'] = $this->AllClientsCount();
+        $data['all_samples'] = $this->AllSamplesCount();
+        $data['all_assigned'] = $this->AllAssignedSamples();
+        $data['all_unassigned'] = $this->AllUnassignedSamples();
+           $user = $this->get_user_type();
+          $type=$user[0]->usertype_id;
+          if($type=='8'){
+        $data['contents'] = 'dashboard_views/samples_v';
+          }else{
+           $data['contents'] = 'dashboard_views/samples_v_1';   
+          }
+        $this->load_template($data);
+    }
+
+    function getCOAChanges($labref) {
+        $offset = $this->countTestRows($labref);
+        return $this->db->where('new_labref', $labref)->limit(200, $offset)->get('coa_body_log')->result();
+    }
+    
+    function get_user_type(){
+         $user_id = $this->session->userdata('user_id');
+         return $this->db->query(" SELECT u.email,ut.usertype_id FROM `users_types` ut, user u WHERE u.email = ut.email AND u.id ='$user_id'" )->result();
+    }
+
+    public function worksheets() {
+       $user = $this->get_user_type();
+       $type=$user[0]->usertype_id;
+        if($type =='8'){
+        $query = $this->db->where('approval_status', '1')->get('directors');
+        }else{
+         $query = $this->db->where('approval_status', '0')->get('directors');   
+        }
+        foreach ($query->result() as $folders) {
+            $folder[] = $folders;
+        }
+        return $folder;
+    }
+    
+       function countTestRows($labref) {
+        return $this->db->where('lab_ref_no', $labref)->from('sample_issuance')->count_all_results();
+    }
+   
+    function changes_made($labref) {
+        $data['changes_made'] = $this->getCOAChanges($labref);
+        //$this->load->view('dashboard_views/coa_changes_v', $data);
+        $data['contents'] = 'dashboard_views/coa_changes_v';
+        $this->load_template($data);
+    }
+
     function index() {
 
         $data['all_clients'] = $this->AllClientsCount();
@@ -105,16 +158,16 @@ class Main_dashboard extends MY_Dashboard {
         }
     }
 
-    function load_analysys_request($Y, $m, $d) {
-        $day = $this->s($d);
+    function load_analysys_request($Y, $m) {
+       // $day = $this->s($d);
         $month = $this->s($m);
-        $date = $Y .'-'.$month.'-'.$day;
-        $data = $this->db->query("SELECT DISTINCT(COUNT(s.labref)) AS Total_samaples,s.id, s.analyst_id,s.analyst_name,s.date_time, td.name
-FROM assigned_samples s, test_departments td 
-WHERE s.department_id = td.id
-AND DATE_FORMAT(s.date_time_tracker,'%Y-%m-%d') = '$date'
-GROUP BY s.analyst_id")->result();
-        
+        $date = $Y . '-' . $month ;
+        $data = $this->db->query("SELECT DISTINCT(COUNT(s.labref)) AS Total_samaples,s.id, s.user_id,s.by,s.date_issued
+FROM sample_details s
+WHERE s.activity = 'Analysis'
+AND DATE_FORMAT(s.date_issued,'%Y-%m') = '$date'
+GROUP BY s.user_id")->result();
+
         foreach ($data as $results):
             $reply[] = $results;
         endforeach;
@@ -125,15 +178,32 @@ GROUP BY s.analyst_id")->result();
         }
     }
 
-    function more_view($i, $Y, $m, $d) {
-        $data['sample_data'] = $this->load_data($i, $Y, $m, $d);
+    function more_view($i, $Y, $m) {
+        $data['sample_data'] = $this->load_data($i, $Y, $m);
         $this->load->view('dashboard_views/more_data', $data);
     }
 
-    function load_data($i, $Y, $m, $d) {
-        $day = $this->s($d);
+    
+      function more_view_samples($i) {
+        $data['info'] =  $this->get_sample_data($i);
+        $data['sl']=  $this->getSampleLocation($i);
+        $this->load->view('dashboard_views/more_data_1', $data);
+    }
+    
+    function get_sample_data($i){
+     return $this->db->query("SELECT r.request_id,r.active_ing, r.sample_qty, d.name, r.designation_date, r.manufacturer_name, r.manufacturer_add, r.label_claim, r.country_of_origin, r.dsgntr
+FROM request r, dosage_form d
+WHERE r.dosage_form = d.id
+AND r.request_id='$i';")->result();   
+    }
+    
+    function get_sample_location($i){
+      return $this->db->where('labref',$i)->get('worksheet_tracking')->result();  
+    }
+    function load_data($i, $Y, $m) {
+        //$day = $this->s($d);
         $month = $this->s($m);
-        return ($this->db->query("SELECT labref ,DATEDIFF(curdate(),`date_time`) AS difference FROM assigned_samples WHERE analyst_id= '$i' AND DATE_FORMAT(date_time_tracker,'%Y-%m-%d') = '$Y-$month-$day'")->result());
+        return ($this->db->query("SELECT labref ,date_returned,date_issued,DATEDIFF(date_returned,date_issued) AS difference FROM sample_details WHERE user_id= '$i' AND DATE_FORMAT(date_issued,'%Y-%m') = '$Y-$month'")->result());
     }
 
     function draw_charts() {
@@ -175,8 +245,8 @@ GROUP BY s.analyst_id")->result();
         return $data;
     }
 
-    public function getData($year = '2014') {
-
+    public function getData($year='2015') {
+            
         // Instantiate the FusionCharts object 
         $FC = $this->Charts();
 
@@ -210,8 +280,8 @@ GROUP BY s.analyst_id")->result();
     function show() {
         $this->Clients_Data();
     }
-    
-       public function getDataUrgent($year = '2014') {
+
+    public function getDataUrgent($year = '2014') {
 
         // Instantiate the FusionCharts object 
         $FC = $this->Charts();
@@ -227,7 +297,7 @@ GROUP BY s.analyst_id")->result();
         print $FC->getXML();
     }
 
-        public function getDataReview($year = '2014') {
+    public function getDataReview($year = '2014') {
 
         // Instantiate the FusionCharts object 
         $FC = $this->Charts();
@@ -242,15 +312,15 @@ GROUP BY s.analyst_id")->result();
         endforeach;
         print $FC->getXML();
     }
-    
-        public function getDataDrafting($year = '2014') {
+
+    public function getDataDrafting($year = '2014') {
 
         // Instantiate the FusionCharts object 
         $FC = $this->Charts();
 
 
         // specify the graph parameters
-        $strParam = "caption=SAMPLES FOR DRAFT CERTIFICATE " . $year . ";xAxisName=Month;yAxisName=Number;decimalPrecision=0;formatNumberScale=1";
+        $strParam = "caption=SAMPLES WITH DRAFT CERTIFICATE " . $year . ";xAxisName=Month;yAxisName=Number;decimalPrecision=0;formatNumberScale=1";
         $FC->setChartParams($strParam);
         $chartData = $this->Monthly_Requests_Drafting($year);
         foreach ($chartData as $drilldown):
@@ -258,8 +328,8 @@ GROUP BY s.analyst_id")->result();
         endforeach;
         print $FC->getXML();
     }
-    
-          public function getDataCompleted($year = '2014') {
+
+    public function getDataCompleted($year = '2014') {
 
         // Instantiate the FusionCharts object 
         $FC = $this->Charts();
@@ -274,8 +344,8 @@ GROUP BY s.analyst_id")->result();
         endforeach;
         print $FC->getXML();
     }
-    
-          public function getDataPending($year = '2014') {
+
+    public function getDataPending($year = '2014') {
 
         // Instantiate the FusionCharts object 
         $FC = $this->Charts();
@@ -290,7 +360,6 @@ GROUP BY s.analyst_id")->result();
         endforeach;
         print $FC->getXML();
     }
-   
 
     public function getClientsData() {
 
@@ -416,9 +485,12 @@ GROUP BY s.analyst_id")->result();
             print $FC->getXML();
         }
     }
-    
+
     function getMontylySamples($d) {
-        $refsub = $this->db->query("SELECT * FROM request WHERE DATE_FORMAT(designation_date,'%Y-%m') = '$d'")->result();
+        $refsub = $this->db->query("SELECT r.request_id, r.designation_date,r.product_name,r.batch_no,c.name
+FROM request r, clients c
+WHERE r.client_id = c.id
+AND DATE_FORMAT(designation_date,'%Y-%m') = '$d'")->result();
 
         foreach ($refsub as $r) {
             $data[] = $r;
@@ -429,12 +501,18 @@ GROUP BY s.analyst_id")->result();
             echo '[]';
         }
     }
-    
-        function getMontylySamplesAssigned($d) {
-        $refsub = $this->db->query("SELECT * FROM request WHERE DATE_FORMAT(designation_date,'%Y-%m') = '$d' AND assign_status='1'")->result();
+
+    function getMontylySamplesAssigned($d) {
+        $refsub = $this->db->query("SELECT  si.labref, si.by, si.date_issued, r.designation_date, c.name,r.product_name,si.date_returned
+FROM request r, sample_details si, clients c
+WHERE r.client_id = c.id
+AND r.request_id = si.labref
+AND si.activity='Analysis'
+AND DATE_FORMAT( si.date_issued, '%Y-%m' ) = '$d'")->result();
 
         foreach ($refsub as $r) {
             $data[] = $r;
+          
         }
         if (!empty($data)) {
             echo json_encode($data);
@@ -442,11 +520,12 @@ GROUP BY s.analyst_id")->result();
             echo '[]';
         }
     }
-    
 
-    
     function getMontylyUrgentSamples($d) {
-        $refsub = $this->db->query("SELECT * FROM request WHERE DATE_FORMAT(designation_date,'%Y-%m') = '$d' AND urgency='1'")->result();
+        $refsub = $this->db->query("SELECT r.request_id,r.designation_date, r.product_name,r.batch_no,c.name
+FROM request r, clients c
+WHERE r.client_id = c.id
+AND DATE_FORMAT(designation_date,'%Y-%m') = '$d' AND urgency='1'")->result();
 
         foreach ($refsub as $r) {
             $data[] = $r;
@@ -457,14 +536,17 @@ GROUP BY s.analyst_id")->result();
             echo '[]';
         }
     }
+
+  
     
-    
-      function getMontylyRDCSamples($s,$d) {
-        $refsub = $this->db->query("SELECT * 
-                        FROM request r, worksheet_tracking wt
-                        WHERE r.request_id = wt.labref
-                        AND DATE_FORMAT(r.designation_date, '%Y-%m') = '$d' 
-                        AND wt.stage = '$s' "
+    function getMontylyRDCSamples($s, $d) {
+        $refsub = $this->db->query("SELECT r.request_id,r.designation_date, r.product_name,r.batch_no,c.name
+                        FROM request r, sample_details si, clients c
+                        WHERE r.request_id = si.labref
+                        AND r.client_id = c.id
+                        AND si.activity ='Review'
+                        AND DATE_FORMAT(si.date_returned, '%Y-%m') = '$d' 
+                       "
                 )->result();
 
         foreach ($refsub as $r) {
@@ -477,8 +559,16 @@ GROUP BY s.analyst_id")->result();
         }
     }
     
-        function getMontylyAssignedSamples($d) {
-        $refsub = $this->db->query("SELECT * FROM request WHERE DATE_FORMAT(designation_date,'%Y-%m') = '$d' AND assign_status='1'")->result();
+     
+    function getMontylyDraftCSamples($s, $d) {
+        $refsub = $this->db->query("SELECT r.request_id,r.designation_date, r.product_name,r.batch_no,c.name
+                        FROM request r, sample_details si, clients c
+                        WHERE r.request_id = si.labref
+                        AND r.client_id = c.id
+                        AND si.activity ='Draft COA'
+                        AND DATE_FORMAT(si.date_returned, '%Y-%m') = '$d' 
+                       "
+                )->result();
 
         foreach ($refsub as $r) {
             $data[] = $r;
@@ -490,8 +580,16 @@ GROUP BY s.analyst_id")->result();
         }
     }
     
-        function getMontylyPendingSamples($d) {
-        $refsub = $this->db->query("SELECT * FROM request WHERE DATE_FORMAT(designation_date,'%Y-%m') = '$d' AND assign_status='0'")->result();
+    
+        function getMontylyDraftCompletedSamples($s, $d) {
+        $refsub = $this->db->query("SELECT r.request_id,r.designation_date, r.product_name,r.batch_no,c.name
+                        FROM request r, sample_details si, clients c
+                        WHERE r.request_id = si.labref
+                        AND r.client_id = c.id
+                        AND si.activity ='COA Approval'
+                        AND DATE_FORMAT(si.date_returned, '%Y-%m') = '$d' 
+                       "
+                )->result();
 
         foreach ($refsub as $r) {
             $data[] = $r;
@@ -504,6 +602,58 @@ GROUP BY s.analyst_id")->result();
     }
     
     
+    
+        function getMontylyRDCSamples1($s, $d) {
+        $refsub = $this->db->query("SELECT r.request_id,r.designation_date, r.product_name,r.batch_no,c.name
+                        FROM request r, worksheet_tracking wt, clients c, sample_details si
+                        WHERE r.request_id = wt.labref
+                        AND r.client_id = c.id
+                        AND si.labref = r.request_id
+                        AND DATE_FORMAT(r.designation_date, '%Y-%m') = '$d' 
+                            GROUP BY r.request_id
+                       "
+                )->result();
+
+        foreach ($refsub as $r) {
+            $data[] = $r;
+        }
+        if (!empty($data)) {
+            echo json_encode($data);
+        } else {
+            echo '[]';
+        }
+    }
+
+    function getMontylyAssignedSamples($d) {
+        $refsub = $this->db->query("SELECT  si.labref, si.by, si.date_issued, r.designation_date, c.name
+FROM request r, sample_details si, clients c
+WHERE r.client_id = c.id
+AND r.request_id = si.labref
+AND si.activity='Analysis'
+AND DATE_FORMAT( si.date_issued, '%Y-%m' ) = '$d'")->result();
+
+        foreach ($refsub as $r) {
+            $data[] = $r;
+        }
+        if (!empty($data)) {
+            echo json_encode($data);
+        } else {
+            echo '[]';
+        }
+    }
+
+    function getMontylyPendingSamples($d) {
+        $refsub = $this->db->query("SELECT r.request_id,r.designation_date, r.batch_no,r.product_name, c.name  FROM request r, clients c WHERE r.client_id = c.id AND DATE_FORMAT(r.designation_date,'%Y-%m') = '$d' AND r.assign_status ='0' ")->result();
+
+        foreach ($refsub as $r) {
+            $data[] = $r;
+        }
+        if (!empty($data)) {
+            echo json_encode($data);
+        } else {
+            echo '[]';
+        }
+    }
 
     function single_out_standard($i) {
         echo json_encode($this->db->where('id', $i)->get('refsubs')->result());

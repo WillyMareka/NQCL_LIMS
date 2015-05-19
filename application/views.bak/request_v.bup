@@ -1,0 +1,84 @@
+<script>
+
+	$("#applicant_name option:last").attr("selected", "selected");
+
+	$("#applicant_name").change(function() {
+	
+		var str = "";
+		
+		$("#applicant_name option:selected").each(function() {
+			str += $(this).attr("id") + "";
+		});
+		
+		$().val()
+		
+		
+		$("#labref_no").text("NDQ" + str + <?php echo date('Y') ?>  + "<?php echo date('m')?>" <?php //if (isset($last_req_id)) { echo $last_req_id -> id + 1; } else { echo "1" ;} ?>);
+		var label_contents = $("#labref_no").html();
+		$("#lab_ref_no").val(label_contents);
+	}).trigger('change');
+</script>
+<script>
+	$('#applicant_name').change(function() {
+		$.ajax({
+			url : '../api.php',
+			data : "id=" + $(this).val(),
+
+			dataType : 'json',
+			success : function(data) {
+				//alert(data);
+				var phone = data[5];
+				var address = data[2];
+				var name = data[4];
+				var clientid = data[0];
+				
+
+				$('#contact_name').val(name);
+				$('#clientid').val(clientid);
+				$('#applicant_address').val(address);
+				$('#contact_telephone').val(phone);
+					
+			}
+		});
+	});
+		
+
+	</script>
+	
+	<script>
+
+			$.ajax({
+			url : '../api.php',
+			data : "id=" + $("#applicant_name option:last").val(),
+
+			dataType : 'json',
+			success : function(data) {
+				//alert(data);
+				var phone = data[5];
+				var address = data[2];
+				var name = data[4];
+				var clientid = data[0];
+				var appl_ref_no = data[6]
+
+				$('#contact_name').val(name);
+				$('#clientid').val(clientid);
+				$('#applicant_address').val(address);
+				$('#contact_telephone').val(phone);
+				
+				if(appl_ref_no != null ){
+	$('#ref_no_td').text('Applicant Reference Number');				
+	$('#appl_ref_no').replaceWith('<input type="text" name="applicant_reference_number" id="appl_ref_no" required readonly />');
+	$('#appl_ref_no').val(appl_ref_no);
+	}
+	else{
+	$('#appl_ref_no').addClass('hide');
+	$('#ref_no_td').text("");	
+	}
+				
+				
+					
+			}
+		});
+			
+		
+	</script>

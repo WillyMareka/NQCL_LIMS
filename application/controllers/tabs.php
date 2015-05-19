@@ -10,6 +10,8 @@ class Tabs extends MY_Controller {
     }
     
     function save_new_tablet_weights($labref){
+       
+        
         $max_row_id=  $this->getUniformityTestRepeatStatus($labref);
         (int)$new_status=(int)$max_row_id[0]->repeat_status +1;
         $analyst_id=  $this->session->userdata('user_id');
@@ -54,20 +56,49 @@ class Tabs extends MY_Controller {
             'analyst_id'=>$analyst_id
             
        );
+       
        $this->db->insert('uniformity_status',$uniformity_status);
-       $this->senttoExcel($labref);
+       $test_id=  $this->uri->segment(4);
+       $this->senttoExcel($labref); 
+       $this->readExcelUpdate($labref, $new_status);
+       $this->RegisterUniformityValues($labref, $new_status);
+       $this->deletePDFgen($labref, $test_id, $analyst_id);
+       $pdf_name=$labref.'_uniformity';
+       $this->insertPDFgen($labref, $pdf_name, $test_id, $analyst_id);
        $this->save_test();
        $this->updateTestIssuanceStatus();
        $this->updateSampleSummary();
        $this->post_posting();
       // $this->updateTabsCapsCOADetails($labref);
-        $test_id=  $this->uri->segment(4);
+    
         $this->updateUploadStatus($labref, $test_id);
-        
+               
+    }
+    
+    function readExcelUpdate($labref, $r){
+        $last_id = $this->db->query("SELECT `id` FROM `weight_tablets` WHERE `labref`='$labref' AND `repeat_status`='$r' ORDER BY id ASC limit 1 ")->result();
        
-      
-     
+        $file2 = "Workbooks/".$labref."/".$labref.".xlsx"; 
+        $objPHPExcel = PHPExcel_IOFactory::load($file2);
+        $worksheet = $objPHPExcel->setActiveSheetIndexByName('Uniformity');
+        $start_id = $last_id[0]->id;
+        for($i=24;$i<44;$i++){
+            $cell = array(
+                'percent_deviation'=>round($worksheet->getCell('D'.$i)->getCalculatedValue()*100,2)
+            );   
+            $this->db->where('id',$start_id)->update('weight_tablets',$cell);
+             $start_id++;
+        }
         
+        $tarray = array(
+            'total'=>round($worksheet->getCell('C45')->getCalculatedValue(),8),
+            //'average'=>round($worksheet->getCell('C46')->getCalculatedValue(),4),
+             'tstatus'=>round($worksheet->getCell('C49')->getCalculatedValue()* 100,4)
+        );
+        
+        $this->db->where('labref',$labref)->where('repeat_status',$r)->update('weight_tablets_ta',$tarray);       
+       
+       
     }
     
     function senttoExcel($labref) {
@@ -80,8 +111,11 @@ class Tabs extends MY_Controller {
 
         $objPHPExcel = PHPExcel_IOFactory::load($file2);
         $objPHPExcel2 = PHPExcel_IOFactory::load($file1);
-
-        $name = $objPHPExcel2->getSheetByName('uniformity');
+        
+        
+        $name = $objPHPExcel2->getSheetByName('Uniformity');
+        $active = $objPHPExcel->getActiveSheetIndex();
+        $objPHPExcel->removeSheetByIndex($active);
         $objPHPExcel->addExternalSheet($name);
         $end = $objPHPExcel->getSheetCount();
         $show_number = array();
@@ -93,14 +127,14 @@ class Tabs extends MY_Controller {
 
         $objPHPExcel->setActiveSheetIndex($sheet);
          $worksheet=  $objPHPExcel->getActiveSheet();
-        $row2 = 3;
+        $row2 = 24;
         foreach ($tablet_weight as $weights):
-            $col = 0;
+            $col = 2;
             $worksheet
                     ->setCellValueByColumnAndRow($col, $row2, $weights);
             $row2++;
         endforeach;
-        $worksheet->setCellValue('A1', $labref);
+        $worksheet->setCellValue('C15', $labref);
 
         $objPHPExcel->getActiveSheet()->setTitle("Uniformity");
 
@@ -118,6 +152,90 @@ class Tabs extends MY_Controller {
         } else {
             echo 'Dir does not exist';
         }
+    }
+    
+    
+         function RegisterUniformityValues($labref,$repeat_status) {
+        if (file_exists('samplepdfs/'.$labref.'_uniformity.pdf')) {
+           unlink('samplepdfs/'.$labref.'_uniformity.pdf');
+        } else {
+           // echo 'Not found';
+        }
+        $uniformity = $this->getTabs_v($labref, $repeat_status);
+         $uniformity_d = $this->taverage($labref, $repeat_status);
+        
+
+        $full_name = 'samplepdfs/uniformity.pdf';     
+        $pdf = new FPDI('P', 'mm', 'A4');
+        $pdf->AliasNbPages();
+
+        $pagecount = $pdf->setSourceFile($full_name);
+
+        $i = 1;
+        do {
+            // add a page
+            $pdf->AddPage();
+            // import page
+            $tplidx = $pdf->ImportPage($i);
+
+            $pdf->useTemplate($tplidx, 10, 10, 200);
+
+            $pdf->SetFont('Arial');
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFontSize(8);
+            
+            $xa=1;
+            $ya1=(int)56;
+            
+            for($u=0; $u<count($uniformity);$u++){
+            
+            $pdf->SetXY(53, $ya1+=5);
+            $pdf->Write(1, $uniformity[$u]->tcsv);
+            
+            $pdf->SetXY(174, $ya1);
+            $pdf->Write(1, $uniformity[$u]->percent_deviation);
+            
+          }
+          
+            $pdf->SetXY(53, 167);
+            $pdf->Write(1, $uniformity_d[0]->total);
+            
+            
+             $pdf->SetXY(53, 176);
+            $pdf->Write(1, $uniformity_d[0]->average);
+            
+             $pdf->SetXY(63, 185);
+            $pdf->Write(1, $uniformity_d[0]->tstatus);
+            
+          
+          
+       
+       
+
+
+
+
+
+            $i++;
+        } while ($i <= $pagecount);
+        $pdf->Output('samplepdfs/'.$labref.'_uniformity.pdf', 'F');
+         
+        echo 'Done';
+    }
+    
+       function getTabs_v($labref, $r) {       
+        $this->db->where('labref', $labref);       
+        $this->db->where('repeat_status', $r);
+        $query = $this->db->get('weight_tablets');
+        return $result = $query->result();
+        //print_r($result);
+    }
+     function taverage($labref, $r) {       
+        $this->db->where('labref', $labref);       
+        $this->db->where('repeat_status', $r);
+        $query = $this->db->get('weight_tablets_ta');
+        return $result = $query->result();
+        //print_r($result);
     }
 
     public function save_tablet_weights() {
@@ -541,7 +659,7 @@ class Tabs extends MY_Controller {
             'analyst_id'=>$analyst_id,
             'priority'=>$urgency
         );
-        $this->db->insert('tests_done',$final_test_done);
+        //$this->db->insert('tests_done',$final_test_done);
     }
     
     function updateSampleSummary(){

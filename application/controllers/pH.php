@@ -41,7 +41,8 @@ class Ph extends MY_Controller {
         $max_row_id = $this->getpHRepeatStatus($labref);
         (int) $new_status = (int) $max_row_id[0]->repeat_status + 1;
         $analyst_id = $this->session->userdata('user_id');
-
+       
+     
 
         $ph = array(
             0 => array('labref' => $labref, 'run' => $this->input->post('ph1'), 'component' => 0, 'analyst_id' => $analyst_id, 'repeat_status' => $new_status),
@@ -64,16 +65,90 @@ class Ph extends MY_Controller {
            );
            $this->db->insert('ph_bottom',$phbottom);
 
-
+ $this->RegisterpHValues($labref, $new_status);
+          $test_id=  $this->uri->segment(4);
+        $this->deletePDFgen($labref, $test_id, $analyst_id);
+       $pdf_name=$labref.'_ph';
+       $this->insertPDFgen($labref, $pdf_name, $test_id, $analyst_id);
         $this->updateSampleIssuance();
         $this->updateTestIssuanceStatus();
         $this->updateSampleSummary();
         $this->post_posting();
         $this->updatepHCOADetails($labref);
         $this->save_test();
-         $test_id=  $this->uri->segment(4);
+      
         $this->updateUploadStatus($labref, $test_id);
       
+    }
+    
+    
+      function RegisterpHValues($labref,$repeat_status) {
+        if (file_exists('samplepdfs/'.$labref.'_ph.pdf')) {
+           unlink('samplepdfs/'.$labref.'_ph.pdf');
+        } else {
+           // echo 'Not found';
+        }
+        $top = $this->getpHa($labref, $repeat_status);
+       
+         $bottom = $this->getpHb($labref, $repeat_status);
+        
+
+        $full_name = 'samplepdfs/ph.pdf';     
+        $pdf = new FPDI('P', 'mm', 'A4');
+        $pdf->AliasNbPages();
+
+        $pagecount = $pdf->setSourceFile($full_name);
+
+        $i = 1;
+        do {
+            // add a page
+            $pdf->AddPage();
+            // import page
+            $tplidx = $pdf->ImportPage($i);
+
+            $pdf->useTemplate($tplidx, 10, 10, 200);
+
+            $pdf->SetFont('Arial');
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFontSize(8);
+            
+            $xa=1;
+            $ya1=(int)164;
+            
+            for($u=0; $u<count($top);$u++){
+            
+            $pdf->SetXY(95, $ya1+=5);
+           // $pdf->Write(1, $uniformity[$u]->tcsv);
+            $pdf->MultiCell(10, 1,   $top[$u]->run, 0, 'R');            
+           
+            
+          }
+            $pdf->SetFont('Arial' ,'B');
+            $pdf->SetXY(95, 189);
+           // $pdf->Write(1, $uniformity[$u]->tcsv);
+            $pdf->MultiCell(10, 1,   $bottom[0]->mean, 0, 'R');   
+            
+         
+              $pdf->SetFont('Arial' ,'B');
+              $pdf->SetFontSize(10);
+               $pdf->SetXY(115, 205);
+                $pdf->Write(1, $bottom[0]->ph);
+         //   $pdf->MultiCell(10, 1,   $top[$u]->run, 0, 'R');  
+          
+
+              $pdf->SetFont('Arial');
+            $pdf->SetXY(27, 55);
+           // $pdf->Write(1, $uniformity[$u]->tcsv);
+            $pdf->MultiCell(170, 7,   $bottom[0]->comments,0, 'L');   
+          
+          
+       
+
+            $i++;
+        } while ($i <= $pagecount);
+        $pdf->Output('samplepdfs/'.$labref.'_ph.pdf', 'F');
+         
+        echo 'Done';
     }
 
     function updateTestIssuanceStatus() {
